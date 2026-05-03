@@ -1,0 +1,14 @@
+[
+  {
+    "origin": [
+      "https://1.yisslamoo.com",
+      "http://localhost:3000",
+      "http://localhost:5173",
+      "https://ais-dev-ddqmvarlh2vomfrcoklcuv-137719442200.europe-west2.run.app",
+      "https://ais-pre-ddqmvarlh2vomfrcoklcuv-137719442200.europe-west2.run.app"
+    ],
+    "method": ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
+    "responseHeader": ["Content-Type", "x-goog-resumable"],
+    "maxAgeSeconds": 3600
+  }
+]

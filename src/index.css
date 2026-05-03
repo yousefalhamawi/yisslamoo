@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Zain:wght@300;400;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Zain", ui-sans-serif, system-ui, sans-serif;
+  --animate-spin: spin 0.5s linear infinite;
+}
+
+body {
+  font-family: 'Zain', sans-serif;
+}
+
+* {
+  font-style: normal !important;
+}
+
+@layer utilities {
+  .writing-mode-vertical-rl {
+    writing-mode: vertical-rl;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

@@ -1,0 +1,72 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>يسلمو | الفخامة الملكية</title>
+    <link rel="icon" type="image/png" href="/img/logo/fav.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zain:wght@300;400;700;800;900&family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#4C1D95', // أرجواني ملكي أغمق
+              primaryDark: '#2E1065',
+              accent: '#D4AF37', // ذهبي ملكي حقيقي
+              bgMain: '#FCFBFA', // لون العاج (Ivory) الفاخر
+              textMain: '#1A0E2B',
+              textMuted: '#8B8B8B',
+            },
+            fontFamily: {
+              sans: ['Poppins', 'Zain', 'sans-serif'],
+            },
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        font-family: 'Poppins', 'Zain', sans-serif;
+        background-color: #FCFBFA;
+        color: #1A0E2B;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      .gold-gradient {
+        background: linear-gradient(135deg, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
+      }
+      .gold-text-gradient {
+        background: linear-gradient(135deg, #BF953F, #B38728, #AA771C);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      ::selection {
+        background-color: #D4AF37;
+        color: #FFFFFF;
+      }
+      .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+      .custom-scrollbar::-webkit-scrollbar-track { background: #FCFBFA; }
+      .custom-scrollbar::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 10px; }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "framer-motion": "https://esm.sh/framer-motion@^12.34.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+  <script type="module" src="/src/index.tsx"></script>
+</body>
+</html>
