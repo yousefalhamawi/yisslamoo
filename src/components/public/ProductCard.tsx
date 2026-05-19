@@ -8,6 +8,7 @@ import { ShoppingBag, Heart, Share2, Eye, Plus, Minus, Star } from 'lucide-react
 import { useCategories } from '../../hooks/useCategories';
 import { getColorHex, getColorName } from '../../utils/colorUtils';
 import { useSharedStore } from '../../store/useSharedStore';
+import { usePricedProduct } from '../../hooks/usePricedProduct';
 
 const MAX_ENGRAVING_LENGTH = 20;
 
@@ -23,6 +24,7 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onClick, onQuickView, isWishlisted, onToggleWishlist }) => {
   const { categories } = useCategories();
   const { reviews } = useSharedStore();
+  const { displayPrice, displayOldPrice } = usePricedProduct(product);
   
   const productReviews = reviews.filter(r => r.productId === product.id && r.status === 'approved');
   const dynamicReviewsCount = productReviews.length;
@@ -207,8 +209,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onClick
         
         {/* Price */}
         <div className="mt-auto flex items-baseline gap-1 pt-1">
+          {displayOldPrice && (
+            <span className="text-[13px] font-bold text-gray-300 line-through mr-2">
+              {displayOldPrice.toLocaleString()}
+            </span>
+          )}
           <span className="text-[22px] font-black text-primaryDark tracking-tight">
-            {product.price.toLocaleString()}
+            {displayPrice.toLocaleString()}
           </span>
           <span className="text-[11px] font-bold text-gray-400 mr-1">ليرة سورية</span>
         </div>

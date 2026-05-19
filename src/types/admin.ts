@@ -28,6 +28,7 @@ export type AdminPageState =
   | 'reviews'
   | 'collections'
   | 'settings'
+  | 'pricing'
   | 'profile'
   | 'staff';
 
@@ -82,6 +83,11 @@ export interface Order {
   recipientNames?: string[] | null;
   couponCode?: string;
   discount?: number;
+  // ── بيانات وقت الشراء (ثبات الطلبات القديمة) ───────────────────
+  /** سعر صرف الدولار لحظة إنشاء الطلب */
+  exchange_rate_at_purchase?: number;
+  /** السعر الإجمالي بالليرة وقت الطلب (محفوظ لأغراض التدقيق) */
+  final_price_syp?: number;
 }
 
 export interface Address {

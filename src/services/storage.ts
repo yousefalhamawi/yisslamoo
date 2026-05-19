@@ -42,6 +42,7 @@ export const storage = {
   async removeItem(key: string): Promise<void> {
     try {
       await del(key);
+      localStorage.removeItem(key); // تنظيف احتياطي من LocalStorage لمنع مشكلة استعادة الجلسة القديمة (Fallback Loop)
     } catch (error) {
       console.error(`Error removing ${key} from storage:`, error);
     }

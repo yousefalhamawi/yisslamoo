@@ -69,17 +69,45 @@ export const profileService = {
   },
 
   createInvite: async (email: string, role: string): Promise<AdminProfile> => {
-    const { data, error } = await supabase
+    // التحقق أولاً مما إذا كان البريد موجوداً
+    const { data: existing } = await supabase
       .from(TABLE_NAME)
-      .upsert({
-        email,
-        role,
-        name: email.split('@')[0], // Default name from email
-        avatar: `https://i.pravatar.cc/150?u=${email}`,
-        lastLogin: new Date().toISOString()
-      }, { onConflict: 'email' })
-      .select()
+      .select('id')
+      .eq('email', email)
       .maybeSingle();
+
+    let data, error;
+    if (existing) {
+      // تحديث
+      const result = await supabase
+        .from(TABLE_NAME)
+        .update({
+          role,
+          name: email.split('@')[0],
+          avatar: `https://i.pravatar.cc/150?u=${email}`,
+          lastLogin: new Date().toISOString()
+        })
+        .eq('id', existing.id)
+        .select()
+        .maybeSingle();
+      data = result.data;
+      error = result.error;
+    } else {
+      // إضافة جديد
+      const result = await supabase
+        .from(TABLE_NAME)
+        .insert({
+          email,
+          role,
+          name: email.split('@')[0],
+          avatar: `https://i.pravatar.cc/150?u=${email}`,
+          lastLogin: new Date().toISOString()
+        })
+        .select()
+        .maybeSingle();
+      data = result.data;
+      error = result.error;
+    }
 
     if (error) {
       console.error('Supabase Error (INVITE):', error);

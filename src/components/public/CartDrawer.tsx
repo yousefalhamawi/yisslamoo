@@ -3,6 +3,8 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Product } from '../../types/index';
 import { getColorName, getColorHex } from '../../utils/colorUtils';
+import { computeDisplayPrice } from '../../utils/pricingEngine';
+import { useSharedStore } from '../../store/useSharedStore';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -14,7 +16,9 @@ interface CartDrawerProps {
 }
 
 const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemove, onUpdateQuantity, onCheckout }) => {
-  const total = items.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+  const exchangeRate = useSharedStore((s) => s.exchangeRate);
+  const getItemPrice = (item: Product) => computeDisplayPrice(item, exchangeRate);
+  const total = items.reduce((sum, item) => sum + (getItemPrice(item) * (item.quantity || 1)), 0);
   const totalQuantity = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
   const FREE_SHIPPING_THRESHOLD = 2000000; // مثال: 2 مليون ليرة للشحن المجاني
   const progress = Math.min((total / FREE_SHIPPING_THRESHOLD) * 100, 100);
@@ -190,10 +194,10 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
                           <div className="mt-auto pt-4 flex justify-between items-end">
                             <div className="flex flex-col gap-1">
                               <span className="text-xs text-gray-400 font-bold">
-                                {item.price.toLocaleString()} × {item.quantity || 1}
+                                {getItemPrice(item).toLocaleString()} × {item.quantity || 1}
                               </span>
                               <span className="text-lg font-black text-primary">
-                                {(item.price * (item.quantity || 1)).toLocaleString()} ليرة سورية
+                                {(getItemPrice(item) * (item.quantity || 1)).toLocaleString()} ليرة سورية
                               </span>
                             </div>
 

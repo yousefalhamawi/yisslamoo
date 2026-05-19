@@ -19,6 +19,7 @@ import { StoreSettings } from '../../services/settingsService';
 import { ImageUpload } from '../../components/admin/ImageUpload';
 import { uploadService } from '../../services/uploadService';
 import { toast } from 'react-hot-toast';
+import ExchangeRateWidget from '../../components/admin/ExchangeRateWidget';
 
 const SettingsPage: React.FC = () => {
   const { settings, loading, updateSettings } = useSettings();
@@ -68,7 +69,23 @@ const SettingsPage: React.FC = () => {
     );
   }
 
-  if (!formData) return null;
+  // إذا فشل تحميل الإعدادات، نعرض ExchangeRateWidget فقط
+  if (!formData) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-8 pb-20">
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 mb-2">إعدادات المتجر</h1>
+          <p className="text-slate-500 font-bold">تحكم في إعدادات متجرك، الهوية، والتواصل.</p>
+        </div>
+        {/* سعر الصرف متاح دائماً */}
+        <ExchangeRateWidget variant="full" />
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-right">
+          <p className="font-bold text-amber-800 mb-1">تعذّر تحميل باقي الإعدادات</p>
+          <p className="text-sm text-amber-600">تأكد من تشغيل ملف <code className="font-mono bg-amber-100 px-1 rounded">pricing_migration.sql</code> في Supabase أولاً، ثم أعد تحميل الصفحة.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8 pb-20">
@@ -173,6 +190,9 @@ const SettingsPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Exchange Rate Management */}
+      <ExchangeRateWidget variant="full" />
 
       {/* Localization & Currency */}
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">

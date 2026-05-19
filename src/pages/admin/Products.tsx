@@ -16,7 +16,10 @@ import {
   Loader2,
   CheckCircle2,
   XCircle,
-  ChevronDown
+  ChevronDown,
+  Zap,
+  PenLine,
+  DollarSign
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { supabase, checkSupabaseConfig } from '../../supabase';
@@ -27,10 +30,13 @@ import { cn } from '../../utils/cn';
 import { unpoison } from '../../utils/unpoison';
 import { getColorName, getColorHex } from '../../utils/colorUtils';
 import { ImageUpload } from '../../components/admin/ImageUpload';
+import { computeDisplayPrice, formatSYP, formatUSD, isValidExchangeRate } from '../../utils/pricingEngine';
+import { useSharedStore } from '../../store/useSharedStore';
 
 const ProductsPage: React.FC = () => {
   const { products, loading, addProduct, updateProduct, deleteProduct } = useProducts();
   const { categories: categoryList } = useCategories();
+  const exchangeRate = useSharedStore((s) => s.exchangeRate);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -56,6 +62,10 @@ const ProductsPage: React.FC = () => {
     weight: '',
     dimensions: ''
   });
+  // ── حالة نظام التسعير ─────────────────────────────────────
+  const [pricingMode, setPricingMode] = useState<'auto' | 'manual'>('auto');
+  const [priceUSD, setPriceUSD] = useState('');
+  const [priceSYPManual, setPriceSYPManual] = useState('');
 
   const itemsPerPage = 8;
   const categories = ['الكل', ...Array.from(new Set(categoryList.map(c => c.name)))];
@@ -82,7 +92,6 @@ const ProductsPage: React.FC = () => {
 
   const handleEdit = (product: Product) => {
     console.log('--- handleEdit Started ---');
-    // Data is already unpoisoned by productService
     console.log('Product to Edit:', JSON.stringify(product, null, 2));
     
     setEditingProduct(product);
@@ -94,20 +103,22 @@ const ProductsPage: React.FC = () => {
     setPreviewImages(Array.isArray(product.images) ? product.images : (product.image ? [product.image] : []));
     setIsTrending(product.isTrending || false);
     
-    // Ensure features is an array
     const initialFeatures = Array.isArray(product.features) ? product.features : [];
     setFeatures(initialFeatures);
-
-    // Ensure colors is an array
     setAvailableColors(Array.isArray(product.availableColors) ? product.availableColors : []);
     
-    // Ensure specifications is an object
     const specs = product.specifications || { material: '', weight: '', dimensions: '' };
     setSpecifications({
       material: specs.material || '',
       weight: specs.weight || '',
       dimensions: specs.dimensions || ''
     });
+    
+    // ── تسعير ──
+    const mode = (product.pricing_mode as 'auto' | 'manual') ?? 'manual';
+    setPricingMode(mode);
+    setPriceUSD(product.price_usd?.toString() ?? '');
+    setPriceSYPManual(product.price_syp_manual?.toString() ?? product.price?.toString() ?? '');
     
     console.log('--- handleEdit Finished ---');
     setIsModalOpen(true);
@@ -134,6 +145,10 @@ const ProductsPage: React.FC = () => {
       weight: '',
       dimensions: ''
     });
+    // ── تسعير ──
+    setPricingMode('auto');
+    setPriceUSD('');
+    setPriceSYPManual('');
     setIsModalOpen(true);
   };
 
@@ -241,7 +256,6 @@ const ProductsPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsUploading(true);
-    console.log('--- Product Save Process Started ---');
     
     try {
       const formData = new FormData(e.currentTarget);
@@ -254,9 +268,6 @@ const ProductsPage: React.FC = () => {
           .replace(/\s+/g, '-')
           .replace(/[^\u0600-\u06FFa-z0-9-]/g, '');
       }
-
-      console.log('Product Name:', name);
-      console.log('Product Slug:', slug);
 
       // Check for duplicate slug
       const isDuplicateSlug = products.some(p => 
@@ -288,7 +299,6 @@ const ProductsPage: React.FC = () => {
       const mainImage = finalImageUrls.length > 0 ? finalImageUrls[0] : 'https://picsum.photos/seed/new/400/400';
       
       const finalFeatures = (features || []).filter(f => f && f.name && f.name.trim() && f.value && f.value.trim());
-      console.log('Features to save:', finalFeatures);
       
       const productData = unpoison({
         name,
@@ -299,7 +309,6 @@ const ProductsPage: React.FC = () => {
         categories: selectedCategories,
         sub_category_id: selectedSubCategories[0] || null,
         sub_category_ids: selectedSubCategories,
-        price: Number(formData.get('price')),
         badge_text: formData.get('badge_text') as string,
         oldPrice: formData.get('oldPrice') ? Number(formData.get('oldPrice')) : null,
         stock: Number(formData.get('stock')),
@@ -314,26 +323,27 @@ const ProductsPage: React.FC = () => {
         images: finalImageUrls,
         isTrending: isTrending,
         rating: editingProduct?.rating || 5,
-        reviews: editingProduct?.reviews || 0
+        reviews: editingProduct?.reviews || 0,
+        // ── حقول التسعير الديناميكي ──
+        pricing_mode: pricingMode,
+        price_usd: pricingMode === 'auto' && priceUSD ? Number(priceUSD) : null,
+        price_syp_manual: pricingMode === 'manual' && priceSYPManual ? Number(priceSYPManual) : null,
+        // حقل price يُحسب تلقائياً للتوافق مع الكود القديم
+        price: pricingMode === 'auto' && priceUSD
+          ? Math.round(Number(priceUSD) * exchangeRate)
+          : Number(priceSYPManual) || 0,
       });
-
-      console.log('Final Prepared Product Data (Unpoisoned):', JSON.stringify(productData, null, 2));
 
       if (finalFeatures.length > 0) {
         toast.success(`سيتم حفظ ${finalFeatures.length} ميزة إضافية`);
       }
 
       if (editingProduct) {
-        console.log('Updating existing product ID:', editingProduct.id);
         await updateProduct(editingProduct.id, productData);
-        console.log('updateProduct call finished.');
       } else {
-        console.log('Adding new product...');
         await addProduct(productData);
-        console.log('addProduct call finished.');
       }
       
-      console.log('Closing modal and resetting state...');
       setIsModalOpen(false);
       setSelectedFiles([]);
       setPreviewImages([]);
@@ -449,8 +459,17 @@ const ProductsPage: React.FC = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
-                      <span className="text-sm font-black text-slate-900">{product.price.toLocaleString()} ليرة سورية</span>
-                      {product.isTrending && <span className="text-[10px] text-indigo-600 font-bold">مميز</span>}
+                      <span className="text-sm font-black text-slate-900">
+                        {computeDisplayPrice(product, exchangeRate).toLocaleString()} ل.س
+                      </span>
+                      {product.price_usd && (
+                        <span className="text-[10px] font-bold text-indigo-400">
+                          {formatUSD(product.price_usd)}
+                        </span>
+                      )}
+                      <span className={`text-[9px] font-black mt-0.5 ${product.pricing_mode === 'auto' ? 'text-emerald-500' : 'text-amber-500'}`}>
+                        {product.pricing_mode === 'auto' ? '⚡ تلقائي' : '✏️ يدوي'}
+                      </span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -755,31 +774,109 @@ const ProductsPage: React.FC = () => {
                   <div className="space-y-6">
                     <h3 className="text-sm font-black text-indigo-600 uppercase tracking-widest">التسعير والمخزون</h3>
                     
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-xs font-black text-slate-700">السعر الحالي</label>
-                        <div className="relative">
-                          <input 
-                            name="price"
-                            type="number" 
-                            required
-                            defaultValue={editingProduct?.price}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pr-4 pl-20 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                          />
-                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">ليرة سورية </span>
-                        </div>
+                    {/* وضع التسعير */}
+                    <div className="space-y-3">
+                      <label className="text-xs font-black text-slate-700">وضع التسعير</label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setPricingMode('auto')}
+                          className={`flex items-center gap-2 p-3 rounded-xl border-2 font-bold text-sm transition-all ${
+                            pricingMode === 'auto'
+                              ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                              : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300'
+                          }`}
+                        >
+                          <Zap className="w-4 h-4" />
+                          تلقائي (USD)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPricingMode('manual')}
+                          className={`flex items-center gap-2 p-3 rounded-xl border-2 font-bold text-sm transition-all ${
+                            pricingMode === 'manual'
+                              ? 'border-amber-500 bg-amber-50 text-amber-700'
+                              : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300'
+                          }`}
+                        >
+                          <PenLine className="w-4 h-4" />
+                          يدوي (ل.س)
+                        </button>
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-black text-slate-700">السعر القديم (اختياري)</label>
-                        <div className="relative">
-                          <input 
-                            name="oldPrice"
-                            type="number" 
-                            defaultValue={editingProduct?.oldPrice}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pr-4 pl-20 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                          />
-                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">ليرة سورية</span>
-                        </div>
+                    </div>
+
+                    {/* حقول التسعير حسب الوضع */}
+                    <AnimatePresence mode="wait">
+                      {pricingMode === 'auto' ? (
+                        <motion.div
+                          key="auto"
+                          initial={{ opacity: 0, y: -8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -8 }}
+                          className="space-y-4"
+                        >
+                          <div className="space-y-2">
+                            <label className="text-xs font-black text-slate-700">السعر بالدولار (USD)</label>
+                            <div className="relative">
+                              <input
+                                type="number"
+                                value={priceUSD}
+                                onChange={(e) => setPriceUSD(e.target.value)}
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pr-4 pl-12 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                                placeholder="مثلاً: 10"
+                                min="0"
+                                step="0.01"
+                              />
+                              <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            </div>
+                          </div>
+                          {/* معاينة فورية */}
+                          {priceUSD && Number(priceUSD) > 0 && (
+                            <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3">
+                              <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1">معاينة فورية</p>
+                              <p className="text-lg font-black text-indigo-800">
+                                {Math.round(Number(priceUSD) * exchangeRate).toLocaleString()} ل.س
+                              </p>
+                              <p className="text-[10px] font-bold text-indigo-400">
+                                ${priceUSD} × {exchangeRate.toLocaleString()} ل.س/$ = {formatSYP(Math.round(Number(priceUSD) * exchangeRate))}
+                              </p>
+                            </div>
+                          )}
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="manual"
+                          initial={{ opacity: 0, y: -8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -8 }}
+                          className="space-y-2"
+                        >
+                          <label className="text-xs font-black text-slate-700">السعر الثابت (ليرة سورية)</label>
+                          <div className="relative">
+                            <input
+                              type="number"
+                              value={priceSYPManual}
+                              onChange={(e) => setPriceSYPManual(e.target.value)}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pr-4 pl-24 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
+                              placeholder="مثلاً: 550000"
+                              min="0"
+                            />
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">ليرة سورية</span>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-black text-slate-700">السعر القديم (اختياري)</label>
+                      <div className="relative">
+                        <input 
+                          name="oldPrice"
+                          type="number" 
+                          defaultValue={editingProduct?.oldPrice}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pr-4 pl-20 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                        />
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">ليرة سورية</span>
                       </div>
                     </div>
 

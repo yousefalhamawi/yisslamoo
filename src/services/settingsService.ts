@@ -11,6 +11,10 @@ export interface StoreSettings {
   taxRate: number;
   shippingFee: number;
   logo?: string;
+  /** سعر صرف الدولار الحالي (ليرة سورية مقابل $1) */
+  exchange_rate?: number;
+  /** تاريخ آخر تحديث لسعر الصرف */
+  exchange_rate_updated_at?: string;
 }
 
 const DEFAULT_SETTINGS: StoreSettings = {

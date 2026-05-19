@@ -146,7 +146,9 @@ const App: React.FC = () => {
     updateCustomer: storeUpdateCustomer,
     setCustomers: storeSetCustomers,
     deleteCustomer: storeDeleteCustomer,
-    setReviews: storeSetReviews
+    setReviews: storeSetReviews,
+    initExchangeRate,
+    exchangeRate,
   } = useSharedStore();
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -170,6 +172,8 @@ const App: React.FC = () => {
           setCategories(categoriesData);
           storeSetReviews(reviewsData);
         }
+        // تحميل سعر الصرف عند بدء التطبيق
+        initExchangeRate();
       } catch (err) {
         console.error('Failed to fetch initial data:', err);
       }
@@ -301,7 +305,12 @@ const App: React.FC = () => {
   const handleCompleteOrder = async (checkoutData: any) => {
     if (cartItems.length === 0) return;
 
-    const subtotal = cartItems.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+    const subtotal = cartItems.reduce((sum, item) => {
+      const itemPrice = item.pricing_mode === 'auto' && item.price_usd
+        ? Math.round(item.price_usd * exchangeRate)
+        : (item.price_syp_manual ?? item.price);
+      return sum + ((itemPrice || 0) * (item.quantity || 1));
+    }, 0);
     const shipping = subtotal > 2000000 ? 0 : 50000;
     const discount = checkoutData.discount || 0;
     const total = subtotal + shipping - discount;
@@ -334,6 +343,9 @@ const App: React.FC = () => {
       recipientNames: recipientNames,
       couponCode: checkoutData.couponCode,
       discount: discount,
+      // ── Snapshot وقت الشراء ──
+      exchange_rate_at_purchase: checkoutData.exchange_rate_at_purchase ?? exchangeRate,
+      final_price_syp: checkoutData.final_price_syp ?? total,
       items: cartItems.map(item => ({
         id: item.cartId || `item-${Math.random().toString(36).substring(2, 9)}`,
         name: item.name,

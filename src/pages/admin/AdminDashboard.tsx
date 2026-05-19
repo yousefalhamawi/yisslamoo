@@ -110,8 +110,20 @@ const AdminDashboard: React.FC = () => {
           }
         } else {
           // Check if we have a mock admin session
-          const hasAdminSession = await storage.getItem('admin_session', 'false') === 'true';
+          const rawAdminSession = await storage.getItem('admin_session', 'false');
+          const hasAdminSession = rawAdminSession === 'true' || rawAdminSession === true;
           if (hasAdminSession) {
+            try {
+              // Sign in anonymously in the background so Supabase client has a valid session to bypass RLS
+              const { error } = await signInAnonymously();
+              if (error) {
+                console.warn("Failed to sign in anonymously for mock admin session:", error);
+                toast.error("تحذير: لا يمكن التعديل على قاعدة البيانات، الجلسة التجريبية غير فعالة (" + error.message + ")");
+              }
+            } catch (err: any) {
+              console.warn("Failed to sign in anonymously for mock admin session:", err);
+              toast.error("فشل في تهيئة جلسة التعديل: " + (err.message || ''));
+            }
             setIsAuthenticated(true);
           } else {
             setIsAuthenticated(false);
@@ -147,6 +159,17 @@ const AdminDashboard: React.FC = () => {
           // Check for mock admin credentials
           if (email === 'admin@yaslamo.com' && password === 'Password123') {
             console.log("Supabase login failed, but using mock admin credentials...");
+            try {
+              // Sign in anonymously so Supabase client has a valid session to bypass RLS
+              const { error } = await signInAnonymously();
+              if (error) {
+                console.warn("Failed to sign in anonymously for mock admin login:", error);
+                toast.error("تنبيه: أنت في الوضع التجريبي لكن التعديلات لن تُحفظ لأن التوثيق فشل (" + error.message + ")");
+              }
+            } catch (err: any) {
+              console.warn("Failed to sign in anonymously for mock admin login:", err);
+              toast.error("فشل في تهيئة جلسة التعديل: " + (err.message || ''));
+            }
             setIsAuthenticated(true);
             storage.setItem('admin_session', 'true');
 
@@ -256,12 +279,18 @@ const AdminDashboard: React.FC = () => {
 
 
   const handleLogout = async () => {
-    await signOut();
-    setIsAuthenticated(false);
-    await storage.removeItem('admin_session');
-    localStorage.removeItem('admin_remember_me');
-    localStorage.removeItem('admin_login_time');
-    sessionStorage.removeItem('admin_session_active');
+    try {
+      await signOut();
+    } catch (err) {
+      console.error("Supabase signOut error:", err);
+    } finally {
+      setIsAuthenticated(false);
+      await storage.removeItem('admin_session');
+      localStorage.removeItem('admin_session'); // إضافة مهمة لحذف الجلسة القديمة من LocalStorage
+      localStorage.removeItem('admin_remember_me');
+      localStorage.removeItem('admin_login_time');
+      sessionStorage.removeItem('admin_session_active');
+    }
   };
 
   if (isLoading || authLoading) {
@@ -288,6 +317,16 @@ const AdminDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <AdminLogin 
+        onLogin={handleLogin}
+        onSignUp={handleSignUp}
+        onAnonymousLogin={handleAnonymousLogin}
+      />
     );
   }
 

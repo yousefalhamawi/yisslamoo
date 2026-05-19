@@ -15,7 +15,15 @@ export const couponService = {
       console.error('Supabase Error (LIST):', error);
       throw new Error('فشل في جلب الكوبونات من Supabase');
     }
-    return data as Coupon[];
+    
+    // تحويل الحقول من snake_case (قاعدة البيانات) إلى camelCase (واجهة التطبيق)
+    return (data || []).map(coupon => ({
+      ...coupon,
+      minOrderAmount: coupon.min_order_amount,
+      usageLimit: coupon.usage_limit,
+      usedCount: coupon.used_count || 0,
+      expiryDate: coupon.expiry_date,
+    })) as Coupon[];
   },
 
   create: async (coupon: Omit<Coupon, 'id'>): Promise<Coupon> => {

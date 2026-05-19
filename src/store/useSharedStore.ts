@@ -7,6 +7,8 @@ import { Order, Customer, Review } from '../types/admin';
 import { PRODUCTS } from '../mockData/initialData';
 import { MOCK_ORDERS, MOCK_CUSTOMERS, MOCK_REVIEWS } from '../mockData/adminData';
 import { unpoison } from '../utils/unpoison';
+import { DEFAULT_EXCHANGE_RATE } from '../utils/pricingEngine';
+import { exchangeRateService } from '../services/exchangeRateService';
 
 // Custom storage using IndexedDB via idb-keyval
 const idbStorage: StateStorage = {
@@ -67,6 +69,15 @@ interface SharedStore {
   addReview: (review: Review) => void;
   updateReview: (id: string, updates: Partial<Review>) => void;
   deleteReview: (id: string) => void;
+  // ── سعر الصرف ───────────────────────────────────────────────
+  /** سعر صرف الدولار الحالي (ليرة سورية / $) */
+  exchangeRate: number;
+  /** تاريخ آخر تحديث لسعر الصرف */
+  exchangeRateUpdatedAt: string | null;
+  /** تحديث سعر الصرف في الذاكرة */
+  setExchangeRate: (rate: number, updatedAt?: string) => void;
+  /** تحميل سعر الصرف من Supabase عند بدء التطبيق */
+  initExchangeRate: () => Promise<void>;
 }
 
 export const useSharedStore = create<SharedStore>()(
@@ -108,6 +119,21 @@ export const useSharedStore = create<SharedStore>()(
       deleteReview: (id) => set({
         reviews: get().reviews.filter(r => r.id !== id)
       }),
+      // ── سعر الصرف ──────────────────────────────────────────────
+      exchangeRate: DEFAULT_EXCHANGE_RATE,
+      exchangeRateUpdatedAt: null,
+      setExchangeRate: (rate, updatedAt) => set({
+        exchangeRate: rate,
+        exchangeRateUpdatedAt: updatedAt ?? new Date().toISOString(),
+      }),
+      initExchangeRate: async () => {
+        try {
+          const rate = await exchangeRateService.getRate();
+          set({ exchangeRate: rate, exchangeRateUpdatedAt: new Date().toISOString() });
+        } catch (e) {
+          console.warn('initExchangeRate: فشل جلب سعر الصرف، سيُستخدم القيمة الافتراضية', e);
+        }
+      },
     }),
     {
       name: 'shared-store',

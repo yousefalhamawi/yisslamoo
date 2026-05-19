@@ -1,6 +1,9 @@
 
 import React from 'react';
 
+/** وضع التسعير: تلقائي (USD × سعر الصرف) أو يدوي (سعر ثابت بالليرة) */
+export type PricingMode = 'auto' | 'manual';
+
 import { Address } from './admin';
 
 export interface User {
@@ -16,6 +19,7 @@ export interface User {
 export interface Product {
   id: string;
   name: string;
+  /** السعر بالليرة السورية — يُستخدم للعرض وللتوافق مع الكود القديم */
   price: number;
   oldPrice?: number;
   image: string;
@@ -50,6 +54,13 @@ export interface Product {
   selectedGiftMessage?: string;
   cartId?: string;
   quantity?: number;
+  // ── حقول نظام التسعير الديناميكي ──────────────────────────────
+  /** السعر الداخلي بالدولار الأمريكي (يدخله الأدمن متضمناً الربح) */
+  price_usd?: number;
+  /** السعر اليدوي الثابت بالليرة السورية (يُستخدم في وضع manual) */
+  price_syp_manual?: number;
+  /** وضع التسعير: 'auto' = USD×سعر الصرف | 'manual' = سعر يدوي ثابت */
+  pricing_mode?: PricingMode;
 }
 
 export interface Testimonial {

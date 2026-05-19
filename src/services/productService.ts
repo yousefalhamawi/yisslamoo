@@ -41,7 +41,6 @@ export const productService = {
   create: async (product: Omit<Product, 'id'>): Promise<Product> => {
     console.log('productService.create - Sending to Supabase:', product);
     
-    // Prepare data for Supabase (stringify objects in arrays for TEXT[] support)
     const toSend = { ...product } as any;
     if (toSend.features && Array.isArray(toSend.features)) {
       toSend.features = toSend.features.map((f: any) => typeof f === 'object' ? JSON.stringify(f) : f);
@@ -69,7 +68,6 @@ export const productService = {
   update: async (id: string, product: Partial<Product>): Promise<Product> => {
     console.log('productService.update - Sending to Supabase:', { id, product });
     
-    // Prepare data for Supabase (stringify objects in arrays for TEXT[] support)
     const toSend = { ...product } as any;
     if (toSend.features && Array.isArray(toSend.features)) {
       toSend.features = toSend.features.map((f: any) => typeof f === 'object' ? JSON.stringify(f) : f);
@@ -78,22 +76,41 @@ export const productService = {
       toSend.specifications = JSON.stringify(toSend.specifications);
     }
 
-    const { data, error } = await supabase
+    // أولاً: التحقق من التوثيق
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      throw new Error("جلسة التوثيق غير فعالة! أنت تستخدم واجهة الإدارة بصلاحيات تجريبية (Mock) ولا يمكنك التعديل على قاعدة البيانات مباشرة. يرجى تسجيل الدخول بحساب حقيقي أو تفعيل جلسة الزائر.");
+    }
+
+    // ثانياً: نُنفِّذ التحديث بدون .single() لتجنب خطأ PGRST116
+    const { error } = await supabase
       .from(TABLE_NAME)
       .update({
         ...toSend,
         updatedAt: new Date().toISOString()
       })
-      .eq('id', id)
-      .select()
-      .single();
+      .eq('id', id);
 
     if (error) {
       console.error('Supabase Error (UPDATE):', error);
       throw new Error(`فشل في تحديث المنتج في Supabase: ${error.message}`);
     }
-    console.log('productService.update - Received from Supabase:', data);
-    return unpoison(data) as Product;
+
+    // ثانياً: نجلب المنتج المحدَّث في استدعاء منفصل
+    const { data: updated, error: fetchError } = await supabase
+      .from(TABLE_NAME)
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (fetchError || !updated) {
+      // التحديث نجح، لكن الجلب فشل — نعيد البيانات المحلية
+      console.warn('productService.update - could not re-fetch, returning local data');
+      return unpoison({ id, ...product }) as Product;
+    }
+
+    console.log('productService.update - Received from Supabase:', updated);
+    return unpoison(updated) as Product;
   },
 
   delete: async (id: string): Promise<void> => {

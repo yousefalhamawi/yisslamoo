@@ -9,6 +9,8 @@ import { useCoupons } from '../../hooks/useCoupons';
 import { addressService } from '../../services/addressService';
 import { customerService } from '../../services/customerService';
 import { toast } from 'react-hot-toast';
+import { computeDisplayPrice } from '../../utils/pricingEngine';
+import { useSharedStore } from '../../store/useSharedStore';
 
 interface CheckoutPageProps {
   items: Product[];
@@ -21,6 +23,7 @@ interface CheckoutPageProps {
 
 const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onBack, onCompleteOrder, onUpdateCustomer }) => {
   const { coupons } = useCoupons();
+  const exchangeRate = useSharedStore((s) => s.exchangeRate);
   const [step, setStep] = useState(user ? 2 : 1);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [isEditingAddress, setIsEditingAddress] = useState(false);
@@ -288,7 +291,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
   const [discount, setDiscount] = useState(0);
   const [couponError, setCouponError] = useState('');
 
-  const subtotal = items.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+  const subtotal = items.reduce((sum, item) => sum + (computeDisplayPrice(item, exchangeRate) * (item.quantity || 1)), 0);
   const shipping = subtotal > 2000000 ? 0 : 50000;
   const total = subtotal + shipping - discount;
 
@@ -980,7 +983,13 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
                         رجوع
                       </button>
                       <button 
-                        onClick={() => onCompleteOrder({ ...formData, discount, couponCode })}
+                        onClick={() => onCompleteOrder({
+                          ...formData,
+                          discount,
+                          couponCode,
+                          exchange_rate_at_purchase: exchangeRate,
+                          final_price_syp: total,
+                        })}
                         className="flex-[2] py-6 bg-accent text-primaryDark font-black rounded-2xl shadow-xl shadow-accent/20 hover:scale-[1.02] active:scale-95 transition-all text-xl"
                       >
                         تأكيد الطلب
