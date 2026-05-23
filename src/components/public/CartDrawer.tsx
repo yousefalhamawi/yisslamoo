@@ -5,6 +5,7 @@ import { Product } from '../../types/index';
 import { getColorName, getColorHex } from '../../utils/colorUtils';
 import { computeDisplayPrice } from '../../utils/pricingEngine';
 import { useSharedStore } from '../../store/useSharedStore';
+import { useSettings } from '../../hooks/useSettings';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -16,11 +17,12 @@ interface CartDrawerProps {
 }
 
 const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemove, onUpdateQuantity, onCheckout }) => {
+  const { settings } = useSettings();
   const exchangeRate = useSharedStore((s) => s.exchangeRate);
   const getItemPrice = (item: Product) => computeDisplayPrice(item, exchangeRate);
   const total = items.reduce((sum, item) => sum + (getItemPrice(item) * (item.quantity || 1)), 0);
   const totalQuantity = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
-  const FREE_SHIPPING_THRESHOLD = 2000000; // مثال: 2 مليون ليرة للشحن المجاني
+  const FREE_SHIPPING_THRESHOLD = settings?.freeShippingThreshold ?? 2000000;
   const progress = Math.min((total / FREE_SHIPPING_THRESHOLD) * 100, 100);
 
   return (

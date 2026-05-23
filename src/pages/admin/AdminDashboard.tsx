@@ -17,6 +17,7 @@ import CollectionsPage from './Collections';
 import SettingsPage from './Settings';
 import ProfilePage from './Profile';
 import StaffPage from './Staff';
+import SliderPage from './Slider';
 import { AdminPageState } from '../../types/admin';
 import { storage } from '../../services/storage';
 import { useAuth } from '../../contexts/AuthContext';
@@ -111,7 +112,7 @@ const AdminDashboard: React.FC = () => {
         } else {
           // Check if we have a mock admin session
           const rawAdminSession = await storage.getItem('admin_session', 'false');
-          const hasAdminSession = rawAdminSession === 'true' || rawAdminSession === true;
+          const hasAdminSession = String(rawAdminSession).toLowerCase() === 'true';
           if (hasAdminSession) {
             try {
               // Sign in anonymously in the background so Supabase client has a valid session to bypass RLS
@@ -158,7 +159,6 @@ const AdminDashboard: React.FC = () => {
         if (error.message === 'Invalid login credentials') {
           // Check for mock admin credentials
           if (email === 'admin@yaslamo.com' && password === 'Password123') {
-            console.log("Supabase login failed, but using mock admin credentials...");
             try {
               // Sign in anonymously so Supabase client has a valid session to bypass RLS
               const { error } = await signInAnonymously();
@@ -325,6 +325,7 @@ const AdminDashboard: React.FC = () => {
       <AdminLogin 
         onLogin={handleLogin}
         onSignUp={handleSignUp}
+        onGoogleLogin={async () => { /* Google login not implemented yet */ }}
         onAnonymousLogin={handleAnonymousLogin}
       />
     );
@@ -360,6 +361,8 @@ const AdminDashboard: React.FC = () => {
         return <ProfilePage />;
       case 'staff':
         return <StaffPage />;
+      case 'slider':
+        return <SliderPage />;
       default:
         return (
           <div className="bg-white p-24 rounded-3xl border border-slate-200 shadow-sm text-center">

@@ -53,7 +53,7 @@ export const reviewService = {
         status: 'pending' // Reviews are pending by default
       }])
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Supabase Error (ADD):', error);
@@ -68,7 +68,7 @@ export const reviewService = {
       .update({ status, updatedAt: new Date().toISOString() })
       .eq('id', id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Supabase Error (UPDATE):', error);

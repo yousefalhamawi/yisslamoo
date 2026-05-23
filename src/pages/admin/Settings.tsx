@@ -234,6 +234,15 @@ const SettingsPage: React.FC = () => {
               className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
             />
           </div>
+          <div className="space-y-2">
+            <label className="text-xs font-black text-slate-700">حد الشحن المجاني (الهدف بالليرة)</label>
+            <input 
+              type="number" 
+              value={formData.freeShippingThreshold ?? 2000000}
+              onChange={(e) => setFormData({...formData, freeShippingThreshold: Number(e.target.value)})}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+            />
+          </div>
         </div>
       </div>
 

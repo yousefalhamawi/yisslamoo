@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage, StateStorage } from 'zustand/middleware';
 import { get, set, del } from 'idb-keyval';
 import { Product } from '../types/index';
-import { Order, Customer, Review } from '../types/admin';
+import { Order, Customer, Review, HeroSlide } from '../types/admin';
 import { PRODUCTS } from '../mockData/initialData';
 import { MOCK_ORDERS, MOCK_CUSTOMERS, MOCK_REVIEWS } from '../mockData/adminData';
 import { unpoison } from '../utils/unpoison';
@@ -53,10 +53,12 @@ interface SharedStore {
   orders: Order[];
   customers: Customer[];
   reviews: Review[];
+  heroSlides: HeroSlide[];
   setProducts: (products: Product[]) => void;
   setOrders: (orders: Order[]) => void;
   setCustomers: (customers: Customer[]) => void;
   setReviews: (reviews: Review[]) => void;
+  setHeroSlides: (slides: HeroSlide[]) => void;
   addProduct: (product: Product) => void;
   updateProduct: (id: string, updates: Partial<Product>) => void;
   deleteProduct: (id: string) => void;
@@ -69,6 +71,9 @@ interface SharedStore {
   addReview: (review: Review) => void;
   updateReview: (id: string, updates: Partial<Review>) => void;
   deleteReview: (id: string) => void;
+  addHeroSlide: (slide: HeroSlide) => void;
+  updateHeroSlide: (id: string, updates: Partial<HeroSlide>) => void;
+  deleteHeroSlide: (id: string) => void;
   // ── سعر الصرف ───────────────────────────────────────────────
   /** سعر صرف الدولار الحالي (ليرة سورية / $) */
   exchangeRate: number;
@@ -87,10 +92,31 @@ export const useSharedStore = create<SharedStore>()(
       orders: MOCK_ORDERS,
       customers: MOCK_CUSTOMERS,
       reviews: MOCK_REVIEWS,
+      heroSlides: [
+        {
+          id: '1',
+          title: 'يسلمو',
+          subtitle: 'ارتقِ بهداياك مع مجموعاتنا الفاخرة',
+          image: 'https://images.unsplash.com/photo-1607344645866-009c320b63e0?q=80&w=2000',
+          link: '/shop',
+          bgColor: 'bg-[#CEE9FB]',
+          textPosition: 'center-right'
+        },
+        {
+          id: '2',
+          title: 'حصري',
+          subtitle: 'تشكيلة جديدة من الهدايا الخشبية',
+          image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=2000',
+          link: '/category/wooden-gifts',
+          bgColor: 'bg-[#FBE4E4]',
+          textPosition: 'center-right'
+        }
+      ],
       setProducts: (products) => set({ products: products.map(p => unpoison(p)) }),
       setOrders: (orders) => set({ orders }),
       setCustomers: (customers) => set({ customers }),
       setReviews: (reviews) => set({ reviews }),
+      setHeroSlides: (heroSlides) => set({ heroSlides }),
       addProduct: (product) => set({ products: [unpoison(product), ...get().products] }),
       updateProduct: (id, updates) => set({
         products: get().products.map(p => p.id === id ? { ...p, ...unpoison(updates) } : p)
@@ -118,6 +144,13 @@ export const useSharedStore = create<SharedStore>()(
       }),
       deleteReview: (id) => set({
         reviews: get().reviews.filter(r => r.id !== id)
+      }),
+      addHeroSlide: (slide) => set({ heroSlides: [...get().heroSlides, slide] }),
+      updateHeroSlide: (id, updates) => set({
+        heroSlides: get().heroSlides.map(s => s.id === id ? { ...s, ...updates } : s)
+      }),
+      deleteHeroSlide: (id) => set({
+        heroSlides: get().heroSlides.filter(s => s.id !== id)
       }),
       // ── سعر الصرف ──────────────────────────────────────────────
       exchangeRate: DEFAULT_EXCHANGE_RATE,

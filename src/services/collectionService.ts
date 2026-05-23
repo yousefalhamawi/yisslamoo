@@ -15,7 +15,7 @@ export const collectionService = {
       if (error.code === 'PGRST204' || error.message.includes('relation "collections" does not exist')) {
         return [];
       }
-      throw new Error('فشل في جلب المجموعات');
+      throw new Error('فشل في جلب المواسم');
     }
 
     // ✅ تحويل snake_case → camelCase
@@ -35,7 +35,7 @@ export const collectionService = {
         updated_at: new Date().toISOString(),
       }])
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Supabase Error (ADD):', error);
@@ -57,7 +57,7 @@ export const collectionService = {
       })
       .eq('id', id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Supabase Error (UPDATE):', error);

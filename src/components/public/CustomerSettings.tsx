@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { User, Mail, Phone, MapPin, Save, ChevronLeft, Shield, Bell } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { User, Mail, Phone, MapPin, Save, ChevronLeft, Shield, Bell, Pencil } from 'lucide-react';
 import { User as UserType } from '../../types/index';
 import { Address, Customer } from '../../types/admin';
 import { validateEmail, validatePhone } from '../../utils/validation';
@@ -31,6 +31,8 @@ const CustomerSettings: React.FC<CustomerSettingsProps> = ({ user, customers, on
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [userAddresses, setUserAddresses] = useState<Address[]>([]);
   const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
+  const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
+  const [editingAddressData, setEditingAddressData] = useState<Partial<Address>>({});
   const [newAddress, setNewAddress] = useState({
     full_name: user.name,
     phone: user.phone || '',
@@ -54,7 +56,15 @@ const CustomerSettings: React.FC<CustomerSettingsProps> = ({ user, customers, on
         setIsLoadingAddresses(true);
         try {
           const addresses = await addressService.getByCustomerId(customer.id);
-          setUserAddresses(addresses);
+          // فلترة السجلات بدون id وإزالة المكررات
+          const seen = new Set<string>();
+          const unique = addresses.filter(a => {
+            if (!a.id) return false;
+            if (seen.has(a.id)) return false;
+            seen.add(a.id);
+            return true;
+          });
+          setUserAddresses(unique);
         } catch (error) {
           console.error('Error fetching addresses:', error);
         } finally {
@@ -147,7 +157,11 @@ const CustomerSettings: React.FC<CustomerSettingsProps> = ({ user, customers, on
           customer_id: customerId
         });
         
-        setUserAddresses(prev => [savedAddress, ...prev]);
+        // إضافة للقائمة مع منع التكرار
+        setUserAddresses(prev => {
+          if (!savedAddress?.id || prev.some(a => a.id === savedAddress.id)) return prev;
+          return [savedAddress, ...prev];
+        });
         setIsAddingAddress(false);
         setNewAddress({
           full_name: user.name,
@@ -194,6 +208,41 @@ const CustomerSettings: React.FC<CustomerSettingsProps> = ({ user, customers, on
       } catch (error) {
         toast.error('فشل في تعيين العنوان الافتراضي');
       }
+    }
+  };
+
+  const handleStartEdit = (addr: Address) => {
+    setEditingAddressId(addr.id);
+    setEditingAddressData({
+      full_name:  addr.full_name,
+      phone:      addr.phone,
+      country:    addr.country,
+      city:       addr.city,
+      street:     addr.street,
+      building:   addr.building,
+      notes:      addr.notes || '',
+      is_default: addr.is_default,
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingAddressId(null);
+    setEditingAddressData({});
+  };
+
+  const handleUpdateAddress = async (id: string) => {
+    if (!editingAddressData.city || !editingAddressData.street || !editingAddressData.full_name || !editingAddressData.phone || !editingAddressData.building) {
+      toast.error('يرجى إكمال جميع الحقول المطلوبة');
+      return;
+    }
+    try {
+      const updated = await addressService.update(id, editingAddressData);
+      setUserAddresses(prev => prev.map(a => a.id === id ? { ...a, ...updated } : a));
+      setEditingAddressId(null);
+      setEditingAddressData({});
+      toast.success('تم تحديث العنوان بنجاح');
+    } catch (error) {
+      toast.error('فشل في تحديث العنوان');
     }
   };
 
@@ -422,41 +471,142 @@ const CustomerSettings: React.FC<CustomerSettingsProps> = ({ user, customers, on
 
                   <div className="space-y-4">
                     {userAddresses.length > 0 ? (
-                      userAddresses.map((addr) => (
-                        <div key={addr.id} className="p-6 rounded-2xl border border-gray-100 flex items-center justify-between group">
-                          <div className="flex items-center gap-4">
-                            <div className="p-3 bg-gray-50 rounded-xl">
-                              <MapPin className="w-6 h-6 text-primary" />
-                            </div>
-                            <div className="text-right">
-                              <div className="flex items-center gap-2 flex-row-reverse">
-                                <p className="font-bold text-gray-900">{addr.full_name}</p>
-                                {addr.is_default && (
-                                  <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-black rounded-full">افتراضي</span>
-                                )}
+                      userAddresses.map((addr, idx) => (
+                        <div key={addr.id || `addr-${idx}`} className="rounded-2xl border border-gray-100 overflow-hidden">
+                          {/* --- بطاقة العنوان --- */}
+                          <div className="p-6 flex items-center justify-between bg-white">
+                            <div className="flex items-center gap-4">
+                              <div className="p-3 bg-gray-50 rounded-xl shrink-0">
+                                <MapPin className="w-6 h-6 text-primary" />
                               </div>
-                              <p className="text-sm text-gray-500">{addr.city}، {addr.street}، مبنى {addr.building}</p>
-                              <p className="text-xs text-gray-400 mt-1">{addr.phone}</p>
+                              <div className="text-right">
+                                <div className="flex items-center gap-2 flex-row-reverse">
+                                  <p className="font-bold text-gray-900">{addr.full_name}</p>
+                                  {addr.is_default && (
+                                    <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-black rounded-full">افتراضي</span>
+                                  )}
+                                </div>
+                                <p className="text-sm text-gray-500">{addr.city}، {addr.street}، مبنى {addr.building}</p>
+                                <p className="text-xs text-gray-400 mt-1">{addr.phone}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              {!addr.is_default && (
+                                <button
+                                  onClick={() => handleSetDefault(addr.id)}
+                                  className="p-2 text-gray-300 hover:text-primary transition-all rounded-xl hover:bg-primary/5"
+                                  title="تعيين كافتراضي"
+                                >
+                                  <Check className="w-4 h-4" />
+                                </button>
+                              )}
+                              <button
+                                onClick={() => editingAddressId === addr.id ? handleCancelEdit() : handleStartEdit(addr)}
+                                className={`p-2 transition-all rounded-xl ${
+                                  editingAddressId === addr.id
+                                    ? 'text-primary bg-primary/10'
+                                    : 'text-gray-300 hover:text-primary hover:bg-primary/5'
+                                }`}
+                                title="تعديل العنوان"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteAddress(addr.id)}
+                                className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all rounded-xl"
+                                title="حذف العنوان"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                            {!addr.is_default && (
-                              <button 
-                                onClick={() => handleSetDefault(addr.id)}
-                                className="p-2 text-gray-300 hover:text-primary transition-all"
-                                title="تعيين كافتراضي"
+
+                          {/* --- نموذج التعديل --- */}
+                          <AnimatePresence>
+                            {editingAddressId === addr.id && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.25 }}
+                                className="overflow-hidden border-t border-gray-100"
                               >
-                                <Check className="w-5 h-5" />
-                              </button>
+                                <div className="p-6 bg-gray-50 space-y-4">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <input
+                                      type="text"
+                                      placeholder="الاسم الكامل للمستلم"
+                                      value={editingAddressData.full_name || ''}
+                                      onChange={(e) => setEditingAddressData(p => ({...p, full_name: e.target.value}))}
+                                      className="w-full bg-white border border-gray-100 rounded-xl px-4 py-3 focus:outline-none focus:border-primary font-bold text-right"
+                                    />
+                                    <input
+                                      type="tel"
+                                      placeholder="رقم الهاتف"
+                                      value={editingAddressData.phone || ''}
+                                      onChange={(e) => setEditingAddressData(p => ({...p, phone: e.target.value}))}
+                                      className="w-full bg-white border border-gray-100 rounded-xl px-4 py-3 focus:outline-none focus:border-primary font-bold text-left"
+                                      dir="ltr"
+                                    />
+                                  </div>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <input
+                                      type="text"
+                                      placeholder="الدولة"
+                                      value={editingAddressData.country || ''}
+                                      onChange={(e) => setEditingAddressData(p => ({...p, country: e.target.value}))}
+                                      className="w-full bg-white border border-gray-100 rounded-xl px-4 py-3 focus:outline-none focus:border-primary font-bold text-right"
+                                    />
+                                    <input
+                                      type="text"
+                                      placeholder="المدينة"
+                                      value={editingAddressData.city || ''}
+                                      onChange={(e) => setEditingAddressData(p => ({...p, city: e.target.value}))}
+                                      className="w-full bg-white border border-gray-100 rounded-xl px-4 py-3 focus:outline-none focus:border-primary font-bold text-right"
+                                    />
+                                  </div>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <input
+                                      type="text"
+                                      placeholder="الشارع"
+                                      value={editingAddressData.street || ''}
+                                      onChange={(e) => setEditingAddressData(p => ({...p, street: e.target.value}))}
+                                      className="w-full bg-white border border-gray-100 rounded-xl px-4 py-3 focus:outline-none focus:border-primary font-bold text-right"
+                                    />
+                                    <input
+                                      type="text"
+                                      placeholder="المبنى / الشقة"
+                                      value={editingAddressData.building || ''}
+                                      onChange={(e) => setEditingAddressData(p => ({...p, building: e.target.value}))}
+                                      className="w-full bg-white border border-gray-100 rounded-xl px-4 py-3 focus:outline-none focus:border-primary font-bold text-right"
+                                    />
+                                  </div>
+                                  <input
+                                    type="text"
+                                    placeholder="ملاحظات إضافية"
+                                    value={editingAddressData.notes || ''}
+                                    onChange={(e) => setEditingAddressData(p => ({...p, notes: e.target.value}))}
+                                    className="w-full bg-white border border-gray-100 rounded-xl px-4 py-3 focus:outline-none focus:border-primary font-bold text-right"
+                                  />
+                                  <div className="flex gap-3 pt-2">
+                                    <button
+                                      onClick={handleCancelEdit}
+                                      className="flex-1 py-3 bg-white border border-gray-100 text-gray-500 font-bold rounded-xl hover:bg-gray-50 transition-all"
+                                    >
+                                      إلغاء
+                                    </button>
+                                    <button
+                                      onClick={() => handleUpdateAddress(addr.id)}
+                                      className="flex-[2] py-3 bg-primary text-white font-black rounded-xl hover:bg-primaryDark transition-all flex items-center justify-center gap-2"
+                                    >
+                                      <Save className="w-4 h-4" />
+                                      حفظ التعديلات
+                                    </button>
+                                  </div>
+                                </div>
+                              </motion.div>
                             )}
-                            <button 
-                              onClick={() => handleDeleteAddress(addr.id)}
-                              className="p-2 text-gray-300 hover:text-red-500 transition-all"
-                              title="حذف العنوان"
-                            >
-                              <Trash2 className="w-5 h-5" />
-                            </button>
-                          </div>
+                          </AnimatePresence>
                         </div>
                       ))
                     ) : (

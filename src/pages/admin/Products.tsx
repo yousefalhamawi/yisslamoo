@@ -91,9 +91,6 @@ const ProductsPage: React.FC = () => {
   const [formCategory, setFormCategory] = useState('');
 
   const handleEdit = (product: Product) => {
-    console.log('--- handleEdit Started ---');
-    console.log('Product to Edit:', JSON.stringify(product, null, 2));
-    
     setEditingProduct(product);
     setFormCategory(product.category);
     setSelectedCategories(product.categories || (product.category ? [product.category] : []));
@@ -120,7 +117,6 @@ const ProductsPage: React.FC = () => {
     setPriceUSD(product.price_usd?.toString() ?? '');
     setPriceSYPManual(product.price_syp_manual?.toString() ?? product.price?.toString() ?? '');
     
-    console.log('--- handleEdit Finished ---');
     setIsModalOpen(true);
   };
 
@@ -222,8 +218,6 @@ const ProductsPage: React.FC = () => {
     const fileName = `${Math.random()}-${Date.now()}.${fileExt}`;
     const filePath = `products/${fileName}`;
 
-    console.log('--- Image Upload Started (Supabase) ---');
-    
     const { data, error } = await supabase.storage
       .from('products')
       .upload(filePath, file);
@@ -243,7 +237,6 @@ const ProductsPage: React.FC = () => {
       .from('products')
       .getPublicUrl(filePath);
 
-    console.log('Upload successful. URL:', publicUrl);
     return publicUrl;
   };
 
@@ -287,7 +280,6 @@ const ProductsPage: React.FC = () => {
 
       // Upload new files
       if (selectedFiles.length > 0) {
-        console.log(`Uploading ${selectedFiles.length} new images...`);
         for (const file of selectedFiles) {
           // Only upload if the file's preview is still in previewImages
           // (This is a bit loose but works for basic multi-upload)
@@ -355,7 +347,6 @@ const ProductsPage: React.FC = () => {
       toast.error(errorMessage);
     } finally {
       setIsUploading(false);
-      console.log('--- Product Save Process Finished ---');
     }
   };
 

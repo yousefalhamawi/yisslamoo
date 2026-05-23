@@ -40,7 +40,7 @@ export const categoryService = {
         createdAt: new Date().toISOString()
       }])
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Supabase Error (CREATE):', error);
@@ -61,7 +61,7 @@ export const categoryService = {
       })
       .eq('id', id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Supabase Error (UPDATE):', error);

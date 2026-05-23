@@ -27,6 +27,8 @@ import CustomerOrders from './components/public/CustomerOrders';
 import CustomerSettings from './components/public/CustomerSettings';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import CollectionDetailsPage from './components/public/CollectionDetailsPage';
+import OurStoryPage from './components/public/OurStoryPage';
+import PoliciesPage from './components/public/PoliciesPage';
 import { PRODUCTS } from './mockData/initialData';
 import { Product, User } from './types/index';
 
@@ -728,7 +730,14 @@ const App: React.FC = () => {
                 <h2 className="text-4xl font-bold mb-8 tracking-tight">كن جزءاً من عالم يسلمو</h2>
                 <p className="text-white/60 text-lg mb-12 leading-relaxed max-w-2xl mx-auto font-normal">احصل على عروض حصرية، معاينات للمجموعات القادمة، وخصومات تصل إلى ٢٥٪ لمشتركي النشرة فقط.</p>
 
-                <a href="#" target='_blank'><button className="px-12 py-4 bg-accent text-primaryDark font-bold rounded-2xl shadow-2xl shadow-accent/20 hover:scale-[1.02] active:scale-95 transition-all text-lg">إنضم الى عائلتنا على الواتس اب</button></a>
+                <a href="https://whatsapp.com/channel/yaslamo" target='_blank'>
+                  <button className="px-12 py-4 bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold rounded-2xl shadow-2xl shadow-[#25D366]/20 hover:scale-[1.02] active:scale-95 transition-all text-lg flex items-center justify-center gap-3 mx-auto">
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 16 16">
+                      <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
+                    </svg>
+                    <span>إنضم الى عائلتنا على الواتس اب</span>
+                  </button>
+                </a>
               </div>
             </section>
           </motion.div>
@@ -814,6 +823,8 @@ const App: React.FC = () => {
             onBack={() => navigate('/')}
           />
         ) : <Navigate to="/" />} />
+        <Route path="/about" element={<OurStoryPage />} />
+        <Route path="/policies" element={<PoliciesPage />} />
         <Route path="/admin/*" element={<AdminDashboard />} />
       </Routes>
     );
@@ -849,34 +860,114 @@ const App: React.FC = () => {
         <QuickViewModal isOpen={isQuickViewOpen} product={quickViewProduct} onClose={() => setIsQuickViewOpen(false)} onAddToCart={addToCart} onViewDetails={navigateToProduct} />
 
         {location.pathname !== '/checkout' && !location.pathname.startsWith('/admin') && (
-          <footer className="bg-white text-primaryDark pt-32 pb-12 border-t border-gray-100">
-            <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-16 mb-24 text-right">
-              <div className="col-span-1 md:col-span-1">
-                <div className="flex items-center gap-3 mb-10 justify-start">
-                  <img src="/img/logo/logo.png" alt="يسلمو" className="h-12 object-contain cursor-pointer" onClick={() => navigate('/')} />
+          <footer className="bg-gray-50 text-gray-800 pt-24 pb-12 border-t border-[#D4AF37]/20 relative overflow-hidden">
+            <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16 mb-20 text-right relative z-10">
+              {/* Brand Section */}
+              <div className="flex flex-col items-start col-span-1">
+                <div className="flex flex-col mb-5 items-start">
+                  <img src="/img/logo/logo.png" alt="يسلمو" className="h-12 object-contain cursor-pointer transition-transform hover:scale-105" onClick={() => navigate('/')} />
+                  <span className="text-[10px] text-[#D4AF37] font-bold tracking-widest mt-2 uppercase">تأسس عام 2024</span>
                 </div>
-                <p className="text-gray-400 font-normal text-base leading-relaxed mb-10">نحن في "يسلمو" نؤمن بأن كل هدية هي حكاية حب، نصيغها لك بأعلى معايير الفخامة والرقي لتصل بصدق لمن تحب.</p>
+                <p className="text-gray-600 font-light text-xs leading-relaxed mb-6 max-w-sm">
+                  نحن في "يسلمو" نؤمن بأن كل هدية هي حكاية حب، نصيغها لك بأعلى معايير الفخامة والرقي لتصل بصدق لمن تحب.
+                </p>
+
+                {/* Social Media Links */}
+                <div className="flex items-center gap-3 justify-start flex-wrap">
+                  <a href="https://facebook.com/yaslamo" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#D4AF37] hover:border-[#D4AF37] bg-white transition-all duration-300 hover:scale-105" title="فيسبوك">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c4.56-.93 8-4.96 8-9.75z" />
+                    </svg>
+                  </a>
+                  <a href="https://instagram.com/yaslamo" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#D4AF37] hover:border-[#D4AF37] bg-white transition-all duration-300 hover:scale-105" title="إنستغرام">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
+                    </svg>
+                  </a>
+                  <a href="https://tiktok.com/@yaslamo" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#D4AF37] hover:border-[#D4AF37] bg-white transition-all duration-300 hover:scale-105" title="تيكتوك">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.02 1.59 4.23.99 1.15 2.37 1.93 3.86 2.19v3.81c-1.63-.09-3.2-.67-4.52-1.65-.21-.15-.41-.32-.61-.5v6.52c-.05 1.89-.73 3.73-1.94 5.17-1.44 1.76-3.66 2.76-5.94 2.72-2.02.04-4.01-.76-5.46-2.18-1.57-1.47-2.45-3.59-2.4-5.78-.07-2.31.97-4.55 2.74-6.02 1.63-1.42 3.83-2.13 5.99-1.92v3.91c-1.18-.18-2.4.15-3.32.93-.93.75-1.45 1.89-1.41 3.09-.04 1.18.45 2.33 1.32 3.12.92.87 2.21 1.29 3.44 1.1 1.25-.14 2.35-.94 2.87-2.08.3-.59.43-1.25.4-1.91V.02z" />
+                    </svg>
+                  </a>
+                  <a href="https://x.com/yaslamo" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#D4AF37] hover:border-[#D4AF37] bg-white transition-all duration-300 hover:scale-105" title="اكس">
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                    </svg>
+                  </a>
+                  <a href="https://threads.net/@yaslamo" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#D4AF37] hover:border-[#D4AF37] bg-white transition-all duration-300 hover:scale-105" title="تريدز">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M6.321 6.016c-.27-.18-1.166-.802-1.166-.802.756-1.081 1.753-1.502 3.132-1.502.975 0 1.803.327 2.394.948s.928 1.509 1.005 2.644q.492.207.905.484c1.109.745 1.719 1.86 1.719 3.137 0 2.716-2.226 5.075-6.256 5.075C4.594 16 1 13.987 1 7.994 1 2.034 4.482 0 8.044 0 9.69 0 13.55.243 15 5.036l-1.36.353C12.516 1.974 10.163 1.43 8.006 1.43c-3.565 0-5.582 2.171-5.582 6.79 0 4.143 2.254 6.343 5.63 6.343 2.777 0 4.847-1.443 4.847-3.556 0-1.438-1.208-2.127-1.27-2.127-.236 1.234-.868 3.31-3.644 3.31-1.618 0-3.013-1.118-3.013-2.582 0-2.09 1.984-2.847 3.55-2.847.586 0 1.294.04 1.663.114 0-.637-.54-1.728-1.9-1.728-1.25 0-1.566.405-1.967.868ZM8.716 8.19c-2.04 0-2.304.87-2.304 1.416 0 .878 1.043 1.168 1.6 1.168 1.02 0 2.067-.282 2.232-2.423a6.2 6.2 0 0 0-1.528-.161"/>
+                    </svg>
+                  </a>
+                  <a href="https://whatsapp.com/channel/yaslamo" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#D4AF37] hover:border-[#D4AF37] bg-white transition-all duration-300 hover:scale-105" title="قناة الواتساب">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12c0 2.17.7 4.19 1.9 5.86L2.5 21.5l3.8-1.3C7.88 21.3 9.87 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-4h2v4zm0-6h-2V8h2v2z" />
+                    </svg>
+                  </a>
+                </div>
               </div>
-              <div className="flex flex-col gap-6">
-                <h4 className="font-bold text-base mb-4 tracking-tight">اكتشف يسلمو</h4>
-                <button onClick={() => navigate('/collections')} className="text-gray-400 font-bold hover:text-primary text-right transition-all text-xs">المجموعات الحصرية</button>
-                <button onClick={() => navigate('/wishlist')} className="text-gray-400 font-bold hover:text-primary text-right transition-all text-xs">قائمة أمنياتي</button>
-                <button onClick={() => navigate('/')} className="text-gray-400 font-bold hover:text-primary text-right transition-all text-xs">قصة يسلمو</button>
+
+              {/* Column 2: Policies & Terms */}
+              <div className="flex flex-col gap-4">
+                <h4 className="font-bold text-sm text-gray-900 tracking-wide relative pb-3 after:content-[''] after:absolute after:bottom-0 after:right-0 after:w-6 after:h-[1.5px] after:bg-[#D4AF37]">السياسات والشروط</h4>
+                <div className="flex flex-col gap-3.5 mt-2">
+                  <button onClick={() => navigate('/policies?tab=privacy')} className="text-gray-600 hover:text-[#D4AF37] text-right transition-all text-xs hover:translate-x-[-4px] duration-300">سياسة الخصوصية</button>
+                  <button onClick={() => navigate('/policies?tab=terms')} className="text-gray-600 hover:text-[#D4AF37] text-right transition-all text-xs hover:translate-x-[-4px] duration-300">الشروط والأحكام</button>
+                  <button onClick={() => navigate('/policies?tab=refund')} className="text-gray-600 hover:text-[#D4AF37] text-right transition-all text-xs hover:translate-x-[-4px] duration-300">الاستبدال والاسترجاع</button>
+                </div>
               </div>
-              <div className="flex flex-col gap-6">
-                <h4 className="font-bold text-base mb-4 tracking-tight">الدعم والمساعدة</h4>
-                <a href="#" className="text-gray-400 font-bold hover:text-primary transition-all text-xs">مركز المساعدة</a>
-                <a href="#" className="text-gray-400 font-bold hover:text-primary transition-all text-xs">تتبع طلبك</a>
+
+              {/* Column 3: Help & Support */}
+              <div className="flex flex-col gap-4">
+                <h4 className="font-bold text-sm text-gray-900 tracking-wide relative pb-3 after:content-[''] after:absolute after:bottom-0 after:right-0 after:w-6 after:h-[1.5px] after:bg-[#D4AF37]">الدعم والمساعدة</h4>
+                <div className="flex flex-col gap-3.5 mt-2">
+                  <button onClick={() => navigate('/about')} className="text-gray-600 hover:text-[#D4AF37] text-right transition-all text-xs hover:translate-x-[-4px] duration-300">قصتنا (يسلمو)</button>
+                  <button onClick={() => navigate('/policies?tab=privacy')} className="text-gray-600 hover:text-[#D4AF37] text-right transition-all text-xs hover:translate-x-[-4px] duration-300">مركز المساعدة</button>
+                  <button onClick={() => navigate('/orders')} className="text-gray-600 hover:text-[#D4AF37] text-right transition-all text-xs hover:translate-x-[-4px] duration-300">تتبع طلبك</button>
+                </div>
               </div>
-              <div className="flex flex-col gap-6">
-                <h4 className="font-bold text-base mb-4 tracking-tight">تواصل معنا</h4>
-                <p className="text-gray-400 font-bold text-xs"> سوريا, دمشق   </p>
-                <p className="text-gray-400 font-bold text-xs">هاتف: +٩٦٦ ٥٠٠ ٠٠٠ ٠٠٠</p>
-                <button onClick={() => navigate('/admin')} className="text-gray-400/20 hover:text-primary transition-all text-right text-[8px] mt-4">الإدارة</button>
+
+              {/* Column 4: Contact Us */}
+              <div className="flex flex-col gap-4">
+                <h4 className="font-bold text-sm text-gray-900 tracking-wide relative pb-3 after:content-[''] after:absolute after:bottom-0 after:right-0 after:w-6 after:h-[1.5px] after:bg-[#D4AF37]">تواصل معنا</h4>
+                <div className="flex flex-col gap-5 mt-2">
+                  <div className="flex items-center gap-3 justify-start">
+                    <div className="w-9 h-9 rounded-xl bg-gray-100 border border-gray-200/60 flex items-center justify-center text-[#D4AF37] shrink-0">
+                      <svg className="w-4 h-4 fill-current" viewBox="0 0 16 16">
+                        <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
+                      </svg>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] text-gray-500 font-bold leading-none mb-1">الدعم الفني والتقني</p>
+                      <a href="https://wa.me/963930000000" target="_blank" rel="noopener noreferrer" className="font-bold text-xs text-gray-900 hover:text-[#D4AF37] transition-colors" dir="ltr">+963 930 000 000</a>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 justify-start">
+                    <div className="w-9 h-9 rounded-xl bg-gray-100 border border-gray-200/60 flex items-center justify-center text-[#D4AF37] shrink-0">
+                      <svg className="w-4 h-4 fill-current" viewBox="0 0 16 16">
+                        <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
+                      </svg>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] text-gray-500 font-bold leading-none mb-1">الشكاوى والاقتراحات</p>
+                      <a href="https://wa.me/963930111222" target="_blank" rel="noopener noreferrer" className="font-bold text-xs text-gray-900 hover:text-[#D4AF37] transition-colors" dir="ltr">+963 930 111 222</a>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="container mx-auto px-6 border-t border-gray-50 pt-10 text-center flex flex-col md:flex-row justify-between items-center gap-6 opacity-40 text-[9px] font-bold uppercase tracking-[0.3em]">
-              <span>جميع الحقوق محفوظة &copy; {new Date().getFullYear()} يسلمو للهدايا الفاخرة.</span>
+
+            <div className="container mx-auto px-6 border-t border-gray-200/60 pt-8 text-center flex flex-col md:flex-row justify-between items-center gap-6 relative z-10">
+              <div className="text-right text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                تأسس عام 2024 | جميع الحقوق محفوظة &copy; {new Date().getFullYear()} يسلمو للهدايا الفاخرة.
+              </div>
+
+              <div className="flex items-center gap-3 flex-wrap justify-center md:justify-end">
+                <span className="px-2.5 py-1 rounded-lg border border-[#D4AF37]/20 bg-[#D4AF37]/5 text-[9px] text-[#A88B2A] font-bold tracking-wider">تغليف فاخر</span>
+                <span className="px-2.5 py-1 rounded-lg border border-[#D4AF37]/20 bg-[#D4AF37]/5 text-[9px] text-[#A88B2A] font-bold tracking-wider">توصيل ملكي آمن</span>
+                <span className="px-2.5 py-1 rounded-lg border border-[#D4AF37]/20 bg-[#D4AF37]/5 text-[9px] text-[#A88B2A] font-bold tracking-wider">خيارات دفع آمنة</span>
+              </div>
             </div>
           </footer>
         )}

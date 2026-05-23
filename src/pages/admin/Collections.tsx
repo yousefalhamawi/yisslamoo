@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Plus, 
-  Search, 
-  Trash2, 
-  Package, 
-  LayoutGrid, 
-  Check, 
+import {
+  Plus,
+  Search,
+  Trash2,
+  Package,
+  LayoutGrid,
+  Check,
   X,
   PlusCircle,
   FolderOpen,
@@ -27,7 +27,7 @@ const CollectionsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  
+
   const [formData, setFormData] = useState({
     name: '',
     image: '',
@@ -38,7 +38,7 @@ const CollectionsPage: React.FC = () => {
 
   const [productSearch, setProductSearch] = useState('');
 
-  const filteredProducts = products.filter(p => 
+  const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
     p.sku?.toLowerCase().includes(productSearch.toLowerCase())
   );
@@ -93,7 +93,7 @@ const CollectionsPage: React.FC = () => {
     }
   };
 
-  const filteredCollections = collections.filter(c => 
+  const filteredCollections = collections.filter(c =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -103,15 +103,15 @@ const CollectionsPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">المجموعات المختارة</h1>
-          <p className="text-slate-500 font-bold mt-2">إدارة مجموعات المنتجات المميزة والخاصة</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">المواسم المختارة</h1>
+          <p className="text-slate-500 font-bold mt-2">إدارة المواسم المميزة والخاصة</p>
         </div>
-        <button 
+        <button
           onClick={() => setShowAddForm(true)}
           className="bg-indigo-600 text-white px-8 py-4 rounded-[1.5rem] font-black text-sm flex items-center justify-center gap-3 hover:bg-black transition-all shadow-xl shadow-indigo-200"
         >
           <PlusCircle className="w-5 h-5" />
-          إنشاء مجموعة جديدة
+          إنشاء موسم جديد
         </button>
       </div>
 
@@ -119,7 +119,7 @@ const CollectionsPage: React.FC = () => {
       <AnimatePresence>
         {showAddForm && (
           <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -139,10 +139,10 @@ const CollectionsPage: React.FC = () => {
                       {/* Basic Info */}
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block pr-2">اسم المجموعة كما سيظهر للزوار</label>
-                        <input 
+                        <input
                           type="text"
                           value={formData.name}
-                          onChange={(e) => setFormData({...formData, name: e.target.value})}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                           placeholder="مثلاً: باقة العيد، مجموعة الشتاء..."
                           className="w-full bg-slate-50 border-2 border-transparent rounded-2xl px-6 py-4 text-sm font-bold focus:bg-white focus:border-indigo-600 transition-all outline-none"
                         />
@@ -150,9 +150,9 @@ const CollectionsPage: React.FC = () => {
 
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block pr-2">وصف المجموعة</label>
-                        <textarea 
+                        <textarea
                           value={formData.description}
-                          onChange={(e) => setFormData({...formData, description: e.target.value})}
+                          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                           placeholder="نبذة مختصرة تصف محتوى المجموعة وما يميزها..."
                           rows={4}
                           className="w-full bg-slate-50 border-2 border-transparent rounded-2xl px-6 py-4 text-sm font-bold focus:bg-white focus:border-indigo-600 transition-all outline-none resize-none"
@@ -160,25 +160,25 @@ const CollectionsPage: React.FC = () => {
                       </div>
 
                       <div className="space-y-2">
-                      <ImageUpload 
-                        value={formData.image}
-                        onChange={(val) => setFormData({...formData, image: val as string})}
-                        onFilesChange={(files) => setImageFile(files[0])}
-                        label="الصورة الرئيسية للمجموعة"
-                        description="ارفع صورة بمقاس مربّع أو بالعرض تعبّر عن المجموعة"
-                      />
-                    </div>
+                        <ImageUpload
+                          value={formData.image}
+                          onChange={(val) => setFormData({ ...formData, image: val as string })}
+                          onFilesChange={(files) => setImageFile(files[0])}
+                          label="الصورة الرئيسية للمجموعة"
+                          description="ارفع صورة بمقاس مربّع أو بالعرض تعبّر عن المجموعة"
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-6">
                       {/* Products Selection */}
                       <div className="space-y-2 flex flex-col h-full">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block pr-2">اختر المنتجات المشمولة ({formData.products.length})</label>
-                        
+
                         <div className="flex-1 bg-slate-50 rounded-[2rem] p-6 space-y-4 flex flex-col border border-slate-100 shadow-inner">
                           <div className="relative">
                             <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                            <input 
+                            <input
                               type="text"
                               value={productSearch}
                               onChange={(e) => setProductSearch(e.target.value)}
@@ -195,8 +195,8 @@ const CollectionsPage: React.FC = () => {
                                 onClick={() => toggleProduct(p.id)}
                                 className={cn(
                                   "w-full flex items-center justify-between p-3 rounded-xl border-2 transition-all group",
-                                  formData.products.includes(p.id) 
-                                    ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100" 
+                                  formData.products.includes(p.id)
+                                    ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100"
                                     : "bg-white border-transparent text-slate-600 hover:border-slate-200"
                                 )}
                               >
@@ -224,14 +224,14 @@ const CollectionsPage: React.FC = () => {
                   </div>
 
                   <div className="pt-6 border-t border-slate-100 flex justify-end gap-4">
-                    <button 
+                    <button
                       type="button"
                       onClick={() => setShowAddForm(false)}
                       className="px-10 py-4 rounded-2xl font-black text-slate-400 hover:text-slate-900 transition-all text-sm"
                     >
                       إلغاء الأمر
                     </button>
-                    <button 
+                    <button
                       type="submit"
                       disabled={isUploading}
                       className="bg-primaryDark text-white px-12 py-4 rounded-2xl font-black text-sm hover:scale-105 active:scale-95 transition-all shadow-xl shadow-slate-200 disabled:opacity-50 flex items-center gap-2"
@@ -253,17 +253,17 @@ const CollectionsPage: React.FC = () => {
         <div className="flex flex-col md:flex-row gap-6 justify-between items-center mb-10">
           <div className="relative w-full md:w-96 group">
             <Search className="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
-            <input 
+            <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="البحث في المجموعات..."
+              placeholder="البحث في المواسم..."
               className="w-full bg-slate-50 border-2 border-transparent rounded-[1.5rem] pr-14 pl-6 py-4 text-sm font-bold focus:bg-white focus:border-indigo-600 transition-all outline-none"
             />
           </div>
           <div className="flex gap-4">
             <div className="px-6 py-2 bg-slate-50 rounded-full text-slate-400 text-[10px] font-black uppercase tracking-widest border border-slate-100">
-              إجمالي المجموعات: {collections.length}
+              إجمالي المواسم: {collections.length}
             </div>
           </div>
         </div>
@@ -271,7 +271,7 @@ const CollectionsPage: React.FC = () => {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-40 text-slate-300">
             <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-6"></div>
-            <p className="font-black text-sm">جاري جلب المجموعات...</p>
+            <p className="font-black text-sm">جاري جلب المواسم...</p>
           </div>
         ) : filteredCollections.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-40 text-slate-300">
@@ -284,16 +284,16 @@ const CollectionsPage: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredCollections.map(collection => (
-              <motion.div 
+              <motion.div
                 layout
-                key={collection.id} 
+                key={collection.id}
                 className="group relative bg-white border border-slate-100 rounded-[2.5rem] overflow-hidden hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-500"
               >
                 <div className="aspect-[4/3] bg-slate-100 relative overflow-hidden">
                   <img src={collection.image} alt={collection.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <div className="absolute top-4 left-4 flex gap-2 translate-y-[-20px] group-hover:translate-y-0 transition-transform duration-500 delay-100">
-                    <button 
+                    <button
                       onClick={() => deleteCollection(collection.id)}
                       className="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-xl flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-white transition-all shadow-lg"
                     >

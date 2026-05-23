@@ -84,7 +84,7 @@ export const couponService = {
       .update(toSend)
       .eq('id', id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Supabase Error (UPDATE):', error);

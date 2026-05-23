@@ -4,6 +4,14 @@
 @theme {
   --font-sans: "Zain", ui-sans-serif, system-ui, sans-serif;
   --animate-spin: spin 0.5s linear infinite;
+
+  /* ألوان المشروع */
+  --color-primary:     #4C1D95;
+  --color-primaryDark: #2E1065;
+  --color-accent:      #D4AF37;
+  --color-bgMain:      #FCFBFA;
+  --color-textMain:    #1A0E2B;
+  --color-textMuted:   #8B8B8B;
 }
 
 body {

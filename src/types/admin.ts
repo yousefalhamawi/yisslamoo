@@ -1,22 +1,23 @@
 
-import { 
-  LayoutDashboard, 
-  Package, 
-  ListTree, 
-  ShoppingCart, 
-  Users, 
-  Ticket, 
-  Warehouse, 
-  Truck, 
-  CreditCard, 
-  BarChart3, 
-  Star, 
-  Settings, 
+import {
+  LayoutDashboard,
+  Package,
+  ListTree,
+  ShoppingCart,
+  Users,
+  Ticket,
+  Warehouse,
+  Truck,
+  CreditCard,
+  BarChart3,
+  Star,
+  Settings,
   UserCircle,
-  Bell
+  Bell,
+  Image as ImageIcon
 } from 'lucide-react';
 
-export type AdminPageState = 
+export type AdminPageState =
   | 'dashboard'
   | 'products'
   | 'categories'
@@ -30,7 +31,8 @@ export type AdminPageState =
   | 'settings'
   | 'pricing'
   | 'profile'
-  | 'staff';
+  | 'staff'
+  | 'slider';
 
 export interface AdminNavItem {
   id: AdminPageState;
@@ -47,11 +49,12 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { id: 'coupons', label: 'الكوبونات', icon: Ticket },
   { id: 'inventory', label: 'المخزون', icon: Warehouse },
   { id: 'analytics', label: 'التحليلات', icon: BarChart3 },
-  { id: 'collections', label: 'المجموعات', icon: ListTree },
+  { id: 'collections', label: 'المواسم', icon: ListTree },
   { id: 'reviews', label: 'التقييمات', icon: Star },
   { id: 'settings', label: 'الإعدادات', icon: Settings },
   { id: 'profile', label: 'الملف الشخصي', icon: UserCircle },
   { id: 'staff', label: 'إدارة الفريق', icon: Users },
+  { id: 'slider', label: 'السلايدر', icon: ImageIcon },
 ];
 
 export interface OrderItem {
@@ -165,4 +168,18 @@ export interface Collection {
   status: 'active' | 'inactive';
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface HeroSlide {
+  id: string;
+  title: string;
+  subtitle: string;
+  image: string;
+  link: string;
+  bgColor: string;
+  titleColor?: string;
+  subtitleColor?: string;
+  buttonText?: string;
+  textPosition?: string;
+  mobileTextPosition?: string;
 }

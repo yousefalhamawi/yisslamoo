@@ -34,7 +34,26 @@ const ProductPage: React.FC<ProductPageProps> = ({
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('default');
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 5000000]);
+
+  const maxProductPrice = useMemo(() => {
+    if (!products || products.length === 0) return 5000000;
+    return Math.max(...products.map(p => p.price));
+  }, [products]);
+
+  const [priceRange, setPriceRange] = useState<[number, number]>(() => {
+    const maxVal = products && products.length > 0 ? Math.max(...products.map(p => p.price)) : 5000000;
+    return [0, maxVal];
+  });
+  const [hasInitializedPrice, setHasInitializedPrice] = useState(false);
+
+  useEffect(() => {
+    if (products && products.length > 0 && !hasInitializedPrice) {
+      const maxVal = Math.max(...products.map(p => p.price));
+      setPriceRange([0, maxVal]);
+      setHasInitializedPrice(true);
+    }
+  }, [products, hasInitializedPrice]);
+
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
@@ -123,30 +142,31 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
         <div className="flex flex-col lg:flex-row gap-20">
           {/* Refined Sidebar - Desktop */}
-          <aside className="hidden lg:block w-80 flex-shrink-0 space-y-16">
+          <aside className="hidden lg:block w-80 flex-shrink-0 space-y-10 bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.02)] self-start">
             {/* Search */}
-            <div className="group">
-              <h3 className="text-[10px] font-bold text-primaryDark uppercase tracking-widest mb-8 flex items-center gap-3">
-                البحث
-                <div className="flex-1 h-[1px] bg-primary/20" />
+            <div className="space-y-4">
+              <h3 className="text-xs font-black text-primaryDark uppercase tracking-widest pb-3 border-b border-primary/10 flex items-center justify-between">
+                <span>البحث</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
               </h3>
-              <div className="relative">
+              <div className="relative group/search">
                 <input 
                   type="text" 
+                  dir="rtl"
                   placeholder="ابحث عن قطعة فنية..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white border border-gray-100 rounded-2xl px-6 py-5 pr-14 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-right text-sm shadow-sm"
+                  className="w-full bg-[#FCFBFA] border border-gray-100 rounded-2xl py-4 pr-12 pl-4 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all text-right text-sm shadow-sm text-textMain placeholder:text-gray-400 font-bold"
                 />
-                <Search className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-primary transition-colors" />
+                <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within/search:text-primary transition-colors" />
               </div>
             </div>
 
             {/* Categories */}
-            <div dir="rtl" className="text-right">
-              <h3 className="text-[10px] font-bold text-primaryDark uppercase tracking-widest mb-8 flex items-center gap-3">
-                التصنيفات
-                <div className="flex-1 h-[1px] bg-primary/20" />
+            <div dir="rtl" className="space-y-4 text-right">
+              <h3 className="text-xs font-black text-primaryDark uppercase tracking-widest pb-3 border-b border-primary/10 flex items-center justify-between">
+                <span>التصنيفات</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-accent" />
               </h3>
               <div className="space-y-2">
                 <button
@@ -156,25 +176,25 @@ const ProductPage: React.FC<ProductPageProps> = ({
                     if (onCategoryChange) onCategoryChange('الكل');
                   }}
                   className={cn(
-                    "w-full px-6 py-5 rounded-2xl transition-all duration-500 flex items-center justify-between group",
+                    "w-full px-5 py-4 rounded-2xl transition-all duration-300 flex items-center justify-between group border text-right",
                     selectedCategory === 'الكل' 
-                      ? 'bg-primaryDark text-white shadow-[0_20px_40px_-12px_rgba(30,27,75,0.3)]' 
-                      : 'bg-white/50 text-slate-600 hover:bg-white hover:shadow-xl hover:shadow-black/5 border border-transparent hover:border-gray-100'
+                      ? 'bg-primaryDark text-white border-primaryDark shadow-lg shadow-primary/15' 
+                      : 'bg-[#FCFBFA] text-textMain border-gray-100 hover:border-primary/20 hover:bg-primary/[0.01]'
                   )}
                 >
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     <span className={cn(
-                      "text-xs font-bold px-3 py-1.5 rounded-xl transition-all duration-500",
-                      selectedCategory === 'الكل' ? "bg-white/20 text-white" : "bg-gray-100 text-slate-400 group-hover:bg-primary/10 group-hover:text-primary"
+                      "text-[10px] font-bold px-2 py-1 rounded-lg transition-all duration-300",
+                      selectedCategory === 'الكل' ? "bg-white/20 text-white" : "bg-primary/5 text-primary group-hover:bg-primary/10 group-hover:text-primary"
                     )}>
                       {products.length}
                     </span>
-                    <ChevronLeft className={cn(
-                      "w-4 h-4 transition-all duration-500",
-                      selectedCategory === 'الكل' ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4 group-hover:opacity-100 group-hover:translate-x-0'
+                    <ChevronLeft size={14} className={cn(
+                      "transition-all duration-300",
+                      selectedCategory === 'الكل' ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0'
                     )} />
                   </div>
-                  <span className="font-bold text-sm tracking-tight">الكل</span>
+                  <span className="font-bold text-sm">الكل</span>
                 </button>
 
                 {mainCategories.map((cat) => {
@@ -190,7 +210,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   const subCats = categoryList.filter(c => c.parent_id === cat.id && c.status === 'active');
                   
                   return (
-                    <div key={cat.id} className="space-y-1">
+                    <div key={cat.id} className="space-y-1.5">
                       <button
                         onClick={() => {
                           setSelectedCategory(cat.name);
@@ -198,34 +218,34 @@ const ProductPage: React.FC<ProductPageProps> = ({
                           if (onCategoryChange) onCategoryChange(cat.name);
                         }}
                         className={cn(
-                          "w-full px-6 py-5 rounded-2xl transition-all duration-500 flex items-center justify-between group",
+                          "w-full px-5 py-4 rounded-2xl transition-all duration-300 flex items-center justify-between group border text-right",
                           isSelected && !selectedSubCategory
-                            ? 'bg-primaryDark text-white shadow-[0_20px_40px_-12px_rgba(30,27,75,0.3)]' 
+                            ? 'bg-primaryDark text-white border-primaryDark shadow-lg shadow-primary/15' 
                             : isSelected
-                              ? 'bg-primary/5 text-primaryDark border border-primary/10'
-                              : 'bg-white/50 text-slate-600 hover:bg-white hover:shadow-xl hover:shadow-black/5 border border-transparent hover:border-gray-100'
+                              ? 'bg-primary/5 text-primaryDark border-primary/20'
+                              : 'bg-[#FCFBFA] text-textMain border-gray-100 hover:border-primary/20 hover:bg-primary/[0.01]'
                         )}
                       >
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3">
                           <span className={cn(
-                            "text-xs font-bold px-3 py-1.5 rounded-xl transition-all duration-500",
-                            isSelected && !selectedSubCategory ? "bg-white/20 text-white" : "bg-gray-100 text-slate-400 group-hover:bg-primary/10 group-hover:text-primary"
+                            "text-[10px] font-bold px-2 py-1 rounded-lg transition-all duration-300",
+                            isSelected && !selectedSubCategory ? "bg-white/20 text-white" : "bg-primary/5 text-primary group-hover:bg-primary/10 group-hover:text-primary"
                           )}>
                             {catProductCount}
                           </span>
                           {subCats.length > 0 ? (
                             <ChevronDown className={cn(
-                              "w-4 h-4 transition-all duration-500",
-                              isSelected ? "rotate-180 text-primary" : "text-slate-300"
+                              "w-4 h-4 transition-all duration-300",
+                              isSelected ? "rotate-180 text-primary" : "text-slate-450"
                             )} />
                           ) : (
-                            <ChevronLeft className={cn(
-                              "w-4 h-4 transition-all duration-500",
-                              isSelected ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4 group-hover:opacity-100 group-hover:translate-x-0'
+                            <ChevronLeft size={14} className={cn(
+                              "transition-all duration-300",
+                              isSelected ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0'
                             )} />
                           )}
                         </div>
-                        <span className="font-bold text-sm tracking-tight">{cat.name}</span>
+                        <span className="font-bold text-sm">{cat.name}</span>
                       </button>
 
                       {/* Sub-categories */}
@@ -235,7 +255,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="mr-6 pr-4 border-r border-gray-100 space-y-1 overflow-hidden py-2"
+                            className="mr-4 pr-3 border-r-2 border-primary/15 space-y-1 overflow-hidden py-2"
                           >
                             {subCats.map((sub) => {
                               const subProductCount = products.filter(p => 
@@ -248,7 +268,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                                   key={sub.id}
                                   onClick={() => setSelectedSubCategory(sub.id)}
                                   className={cn(
-                                    "w-full px-4 py-2.5 rounded-lg transition-all duration-200 text-xs font-medium flex items-center justify-between group",
+                                    "w-full px-4 py-2.5 rounded-xl transition-all duration-200 text-xs font-bold flex items-center justify-between group",
                                     isSubSelected
                                       ? 'bg-primary/10 text-primary'
                                       : 'text-slate-500 hover:text-primary hover:bg-primary/5'
@@ -277,42 +297,47 @@ const ProductPage: React.FC<ProductPageProps> = ({
             </div>
 
             {/* Price Range */}
-            <div>
-              <h3 className="text-[10px] font-bold text-primaryDark uppercase tracking-widest mb-8 flex items-center gap-3">
-                نطاق السعر
-                <div className="flex-1 h-[1px] bg-primary/20" />
+            <div className="space-y-4">
+              <h3 className="text-xs font-black text-primaryDark uppercase tracking-widest pb-3 border-b border-primary/10 flex items-center justify-between">
+                <span>نطاق السعر</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-accent" />
               </h3>
-              <div className="space-y-8 px-2">
-                <div className="flex items-center justify-between text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                  <span>{priceRange[1].toLocaleString()} ليرة</span>
-                  <span>{priceRange[0].toLocaleString()} ليرة</span>
+              <div className="space-y-6 px-1">
+                <div className="flex items-center justify-between text-xs font-bold text-gray-400">
+                  <span className="text-[#1A0E2B]">{priceRange[1].toLocaleString()} ل.س</span>
+                  <span className="text-gray-400">الحد الأقصى</span>
                 </div>
+                
                 <input 
                   type="range" 
                   min="0" 
-                  max="5000000" 
-                  step="50000"
+                  max={maxProductPrice} 
+                  step={Math.max(1000, Math.floor(maxProductPrice / 100))}
                   value={priceRange[1]}
                   onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
-                  className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primaryDark"
+                  className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-primaryDark focus:outline-none"
+                  style={{
+                    background: `linear-gradient(to left, #4C1D95 ${((priceRange[1] - 0) / (maxProductPrice - 0)) * 100}%, #f3f4f6 0%)`
+                  }}
                 />
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[9px] text-gray-400 font-bold uppercase tracking-widest block text-right">إلى</label>
-                    <input 
-                      type="number" 
-                      value={priceRange[1]}
-                      onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
-                      className="w-full bg-white border border-gray-100 rounded-xl px-4 py-3 text-right text-xs font-bold focus:outline-none focus:border-primary"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[9px] text-gray-400 font-bold uppercase tracking-widest block text-right">من</label>
+                
+                <div className="grid grid-cols-2 gap-3" dir="rtl">
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] text-gray-400 font-bold block pr-1">من (ل.س)</span>
                     <input 
                       type="number" 
                       value={priceRange[0]}
                       onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
-                      className="w-full bg-white border border-gray-100 rounded-xl px-4 py-3 text-right text-xs font-bold focus:outline-none focus:border-primary"
+                      className="w-full bg-[#FCFBFA] border border-gray-100 rounded-xl py-3 px-2 text-center text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all text-textMain shadow-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] text-gray-400 font-bold block pr-1">إلى (ل.س)</span>
+                    <input 
+                      type="number" 
+                      value={priceRange[1]}
+                      onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
+                      className="w-full bg-[#FCFBFA] border border-gray-100 rounded-xl py-3 px-2 text-center text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all text-textMain shadow-sm"
                     />
                   </div>
                 </div>
@@ -589,8 +614,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
                     <input 
                       type="range" 
                       min="0" 
-                      max="5000000" 
-                      step="50000"
+                      max={maxProductPrice} 
+                      step={Math.max(1000, Math.floor(maxProductPrice / 100))}
                       value={priceRange[1]}
                       onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
                       className="w-full h-2 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-primaryDark"
@@ -611,7 +636,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   تطبيق الفلاتر
                 </button>
                 <button 
-                  onClick={() => {setSearchQuery(''); setSelectedCategory('الكل'); setPriceRange([0, 5000000]); setShowMobileFilters(false);}}
+                  onClick={() => {setSearchQuery(''); setSelectedCategory('الكل'); setPriceRange([0, maxProductPrice]); setShowMobileFilters(false);}}
                   className="w-full text-gray-400 font-bold text-[10px] uppercase tracking-widest hover:text-primaryDark transition-colors"
                 >
                   إعادة ضبط الكل

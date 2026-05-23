@@ -15,6 +15,8 @@ export interface StoreSettings {
   exchange_rate?: number;
   /** تاريخ آخر تحديث لسعر الصرف */
   exchange_rate_updated_at?: string;
+  /** حد الشحن المجاني (الهدف) بالليرة السورية */
+  freeShippingThreshold?: number;
 }
 
 const DEFAULT_SETTINGS: StoreSettings = {
@@ -25,7 +27,8 @@ const DEFAULT_SETTINGS: StoreSettings = {
   phone: '+963 9XX XXX XXX',
   taxRate: 0,
   shippingFee: 50000,
-  logo: '/img/logo/logo.png'
+  logo: '/img/logo/logo.png',
+  freeShippingThreshold: 2000000
 };
 
 const TABLE_NAME = 'settings';
@@ -49,7 +52,7 @@ export const settingsService = {
       .from(TABLE_NAME)
       .upsert({ ...settings, id: settings.id || 'default' })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Supabase Error (UPDATE):', error);

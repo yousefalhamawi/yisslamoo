@@ -519,10 +519,13 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
                           <p className="text-sm text-gray-400 text-right italic">لا توجد عناوين محفوظة بعد</p>
                         ) : (
                           userAddresses.map((addr, idx) => (
-                            <button
+                            <div
                               key={`saved-addr-${addr.id || 'new'}-${idx}`}
                               onClick={() => handleSelectAddress(addr)}
-                              className={`w-full p-6 rounded-3xl border-2 text-right transition-all ${selectedAddressId === addr.id ? 'border-primary bg-primary/5' : 'border-gray-50 hover:border-gray-100'}`}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => e.key === 'Enter' && handleSelectAddress(addr)}
+                              className={`w-full p-6 rounded-3xl border-2 text-right transition-all cursor-pointer ${selectedAddressId === addr.id ? 'border-primary bg-primary/5' : 'border-gray-50 hover:border-gray-100'}`}
                             >
                               <div className="flex items-start justify-between flex-row-reverse">
                                 <div className="flex items-start gap-4 flex-row-reverse">
@@ -576,7 +579,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
                                   </svg>
                                 </div>
                               </div>
-                            </button>
+                            </div>
                           ))
                         )}
                       </div>
@@ -890,10 +893,13 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
                             <p className="text-sm text-gray-400 text-right italic">لا توجد عناوين محفوظة بعد</p>
                           ) : (
                             userAddresses.map((addr, idx) => (
-                              <button
+                              <div
                                 key={`step3-addr-${addr.id || 'new'}-${idx}`}
                                 onClick={() => handleSelectAddress(addr)}
-                                className={`w-full p-5 rounded-2xl border-2 text-right transition-all ${selectedAddressId === addr.id ? 'border-primary bg-primary/5' : 'border-gray-50 hover:border-gray-100'}`}
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSelectAddress(addr)}
+                                className={`w-full p-5 rounded-2xl border-2 text-right transition-all cursor-pointer ${selectedAddressId === addr.id ? 'border-primary bg-primary/5' : 'border-gray-50 hover:border-gray-100'}`}
                               >
                                 <div className="flex items-start justify-between flex-row-reverse">
                                   <div className="flex items-start gap-3 flex-row-reverse">
@@ -922,7 +928,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
                                     </div>
                                   </div>
                                 </div>
-                              </button>
+                              </div>
                             ))
                           )}
                         </div>

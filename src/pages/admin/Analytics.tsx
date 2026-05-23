@@ -132,7 +132,7 @@ const AnalyticsPage: React.FC = () => {
         <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
           <h3 className="font-black text-slate-900 text-lg mb-8">توزيع المبيعات حسب التصنيف</h3>
           <div className="h-[350px] flex flex-col md:flex-row items-center">
-            <div className="flex-1 h-full w-full">
+            <div className="flex-1 h-full w-full min-w-0">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie

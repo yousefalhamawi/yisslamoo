@@ -43,7 +43,7 @@ export const paymentService = {
       .update({ status: newStatus })
       .eq('id', id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Supabase Error (UPDATE):', error);

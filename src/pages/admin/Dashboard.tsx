@@ -92,9 +92,7 @@ const Dashboard: React.FC = () => {
   });
 
   const handleAddProduct = async () => {
-    // This logic should be moved to Products page or productService
-    // For now, we'll just log it as it's not implemented in dashboardService
-    console.log('Add product clicked', newProduct);
+    // Quick-add from dashboard not implemented — redirect to Products page instead
     setShowAddProduct(false);
   };
 

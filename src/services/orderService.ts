@@ -56,34 +56,32 @@ export const orderService = {
   },
 
   create: async (order: Order): Promise<Order> => {
-    console.log('orderService.create - Sending to Supabase:', order);
     
-    // Prepare data for Supabase - we'll send both camelCase and snake_case to be safe
+    // Prepare data for Supabase — send both camelCase AND snake_case because
+    // the DB schema uses camelCase column names (e.g. "customerName" NOT NULL)
     const toSend: any = { 
       ...order,
-      customer_name: order.customerName,
-      customer_email: order.customerEmail,
-      payment_method: order.paymentMethod,
-      is_gift: order.isGift,
-      gift_wrapping: order.giftWrapping,
-      gift_message: order.giftMessage,
-      recipient_names: order.recipientNames,
-      coupon_code: order.couponCode
+      // snake_case aliases (kept for forward-compatibility if schema changes)
+      customer_name:    order.customerName,
+      customer_email:   order.customerEmail,
+      payment_method:   order.paymentMethod,
+      is_gift:          order.isGift,
+      gift_wrapping:    order.giftWrapping,
+      gift_message:     order.giftMessage,
+      recipient_names:  order.recipientNames,
+      coupon_code:      order.couponCode,
     };
-    
-    // 1. Handle empty strings: Postgres ARRAY columns (like TEXT[]) will throw 
-    // "malformed array literal: \"\"" if passed an empty string instead of an array or NULL.
-    // We'll set all empty strings to null to be safe.
+    // NOTE: We intentionally do NOT delete the camelCase fields because the
+    // "orders" table has NOT NULL columns in camelCase (e.g. "customerName").
+
+    // 1. Handle empty strings — Postgres ARRAY columns throw on empty string
     Object.keys(toSend).forEach(key => {
-      if (toSend[key] === "") {
+      if (toSend[key] === '') {
         toSend[key] = null;
       }
     });
 
-    // 2. Handle items array: 
-    // If the column is TEXT[], it expects an array of strings.
-    // If the column is JSONB, it can take an array of objects or strings.
-    // We'll stringify each item object to support both TEXT[] and JSONB/TEXT.
+    // 2. Stringify items so they work with both TEXT[] and JSONB columns
     if (toSend.items && Array.isArray(toSend.items)) {
       toSend.items = toSend.items.map((item: any) => 
         typeof item === 'object' ? JSON.stringify(item) : item
@@ -94,28 +92,24 @@ export const orderService = {
       .from(TABLE_NAME)
       .insert([toSend])
       .select()
-      .single();
+      .maybeSingle();
 
-    // If it fails because of a missing column (like coupon_code), try again without it
+    // If a column doesn't exist in the schema, retry without it
     if (error && (error.code === '42703' || error.message.includes('coupon_code'))) {
-      console.warn('Supabase Error: Missing column detected. Retrying without coupon_code...');
+      console.warn('Supabase: Missing column detected. Retrying without coupon_code...');
       const { coupon_code, ...toSendWithoutCoupon } = toSend;
       const retry = await supabase
         .from(TABLE_NAME)
         .insert([toSendWithoutCoupon])
         .select()
-        .single();
+        .maybeSingle();
       
       data = retry.data;
       error = retry.error;
     }
 
     if (error) {
-      console.error('Supabase Error (CREATE) - Full Error:', error);
-      // Log specific details to help debugging
-      if (error.code === '42703') {
-        console.error('Error 42703: One or more columns do not exist in the orders table. Check your schema.');
-      }
+      console.error('Supabase Error (CREATE):', error);
       throw new Error(`فشل في إنشاء الطلب في Supabase: ${error.message}${error.details ? ` (${error.details})` : ''}`);
     }
     return mapOrder(data);
@@ -127,7 +121,7 @@ export const orderService = {
       .update({ status, updated_at: new Date().toISOString() })
       .eq('id', id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Supabase Error (UPDATE):', error);

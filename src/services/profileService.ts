@@ -78,7 +78,7 @@ export const profileService = {
 
     let data, error;
     if (existing) {
-      // تحديث
+      // تحديث الدور فقط إذا كان المستخدم موجوداً
       const result = await supabase
         .from(TABLE_NAME)
         .update({
@@ -93,10 +93,12 @@ export const profileService = {
       data = result.data;
       error = result.error;
     } else {
-      // إضافة جديد
+      // إضافة جديد — نولّد UUID مؤقت. سيُستبدل بـ auth user id عند أول تسجيل دخول
+      const tempId = crypto.randomUUID();
       const result = await supabase
         .from(TABLE_NAME)
         .insert({
+          id: tempId,
           email,
           role,
           name: email.split('@')[0],

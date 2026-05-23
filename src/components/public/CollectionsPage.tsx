@@ -21,7 +21,7 @@ const CollectionsPage: React.FC<CollectionsPageProps> = ({ onCollectionClick }) 
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -35,18 +35,18 @@ const CollectionsPage: React.FC<CollectionsPageProps> = ({ onCollectionClick }) 
             animate={{ opacity: 1, y: 0 }}
             className="inline-block px-5 py-1.5 bg-primary/5 text-primary rounded-full text-xs font-bold tracking-[0.2em] uppercase mb-6"
           >
-            استكشف العوالم
+            مجموعاتنا الحصرية
           </motion.div>
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             className="text-5xl md:text-7xl font-bold text-textMain tracking-tight leading-tight mb-8"
           >
             مجموعات <br />
-            <span className="text-primary">نخبة</span> الحصرية
+            <span className="text-primary">يسلمو</span> الحصرية
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
@@ -54,7 +54,7 @@ const CollectionsPage: React.FC<CollectionsPageProps> = ({ onCollectionClick }) 
           >
             كل مجموعة هي رحلة فريدة في عالم الجمال والإبداع، صُممت لتلبي تطلعاتكم وتليق بمناسباتكم الغالية.
           </motion.p>
-          
+
           {/* Decorative Background Text */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[20vw] font-black text-gray-50 -z-10 select-none opacity-50">
             مختارة
@@ -80,15 +80,15 @@ const CollectionsPage: React.FC<CollectionsPageProps> = ({ onCollectionClick }) 
               >
                 {/* Image Side */}
                 <div className="flex-1 relative w-full aspect-[16/10] lg:aspect-square rounded-[4rem] overflow-hidden shadow-2xl">
-                  <motion.img 
+                  <motion.img
                     whileHover={{ scale: 1.05 }}
                     transition={{ duration: 1.5 }}
-                    src={col.image} 
-                    alt={col.name} 
+                    src={col.image}
+                    alt={col.name}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-primaryDark/10 group-hover:bg-transparent transition-colors duration-700" />
-                  
+
                   {/* Floating Tag */}
                   <div className="absolute top-8 right-8 bg-accent text-primaryDark px-4 py-2 rounded-xl font-bold text-[10px] shadow-xl">
                     {idx === 0 ? 'الأكثر رواجاً' : idx === 1 ? 'إصدارات محدودة' : 'تغليف ملكي'}
@@ -107,7 +107,7 @@ const CollectionsPage: React.FC<CollectionsPageProps> = ({ onCollectionClick }) 
                   <p className="text-lg text-gray-400 font-normal leading-relaxed mb-8 max-w-lg mr-0 ml-auto">
                     {col.description}
                   </p>
-                  
+
                   <motion.button
                     whileHover={{ gap: '1.5rem' }}
                     className="flex items-center gap-4 text-primary font-bold text-base flex-row-reverse group-hover:text-primaryDark transition-all"

@@ -39,7 +39,6 @@ export const productService = {
   },
 
   create: async (product: Omit<Product, 'id'>): Promise<Product> => {
-    console.log('productService.create - Sending to Supabase:', product);
     
     const toSend = { ...product } as any;
     if (toSend.features && Array.isArray(toSend.features)) {
@@ -56,7 +55,7 @@ export const productService = {
         createdAt: new Date().toISOString()
       }])
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Supabase Error (CREATE):', error);
@@ -66,7 +65,6 @@ export const productService = {
   },
 
   update: async (id: string, product: Partial<Product>): Promise<Product> => {
-    console.log('productService.update - Sending to Supabase:', { id, product });
     
     const toSend = { ...product } as any;
     if (toSend.features && Array.isArray(toSend.features)) {
@@ -109,7 +107,6 @@ export const productService = {
       return unpoison({ id, ...product }) as Product;
     }
 
-    console.log('productService.update - Received from Supabase:', updated);
     return unpoison(updated) as Product;
   },
 

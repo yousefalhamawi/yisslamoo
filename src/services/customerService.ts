@@ -120,7 +120,7 @@ export const customerService = {
       .update({ ...dbData, updated_at: new Date().toISOString() })
       .eq('id', id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Supabase Error (UPDATE):', error);
@@ -133,7 +133,7 @@ export const customerService = {
           .update({ ...rest, user_id: null, updated_at: new Date().toISOString() })
           .eq('id', id)
           .select()
-          .single();
+          .maybeSingle();
         if (!retryError) return mapCustomer(retryData);
       }
       
@@ -160,7 +160,7 @@ export const customerService = {
       .from(TABLE_NAME)
       .upsert([{ ...dbData, updated_at: new Date().toISOString() }], { onConflict: 'email' })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Supabase Error (ADD/UPSERT):', error);
@@ -172,7 +172,7 @@ export const customerService = {
           .from(TABLE_NAME)
           .upsert([{ ...rest, user_id: null, updated_at: new Date().toISOString() }], { onConflict: 'email' })
           .select()
-          .single();
+          .maybeSingle();
         if (!retryError) return mapCustomer(retryData);
       }
       
@@ -182,56 +182,57 @@ export const customerService = {
   },
 
   getOrCreateCustomer: async (userId: string, customerData: Partial<Customer>): Promise<Customer> => {
-    // Check if userId is a valid UUID (Supabase Auth ID)
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
+    const isValidUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
 
-    // 1. Try to fetch existing customer
-    // We check both id and user_id if it's a UUID
+    // ── 1. Try to find by id / user_id ──────────────────────────────────
     const query = supabase.from(TABLE_NAME).select('*');
-    if (isUuid) {
+    if (isValidUuid) {
       query.or(`id.eq.${userId},user_id.eq.${userId}`);
     } else {
       query.eq('id', userId);
     }
-
-    const { data: existing, error: fetchError } = await query.maybeSingle();
+    const { data: existing } = await query.maybeSingle();
 
     if (existing) {
       const customer = mapCustomer(existing);
-      // Update name if it's currently generic and we have a better one
+      // Update name if currently generic
       if (customerData.name && (customer.name === 'عميل يسلمو' || customer.name === 'زائر') && customerData.name !== customer.name) {
-        try {
-          return await customerService.update(customer.id, { name: customerData.name });
-        } catch (e) {
-          return customer;
-        }
+        try { return await customerService.update(customer.id, { name: customerData.name }); } catch { /* ignore */ }
       }
       return customer;
     }
 
-    // 2. If not found, try to insert. 
-    const insertData: any = { 
-      id: userId,
+    // ── 2. Try to find by email (catches the case where the customer exists
+    //       under a different id, e.g. old CUST-xxx vs new UUID) ──────────
+    if (customerData.email) {
+      const { data: byEmail } = await supabase
+        .from(TABLE_NAME)
+        .select('*')
+        .eq('email', customerData.email)
+        .maybeSingle();
+
+      if (byEmail) {
+        const customer = mapCustomer(byEmail);
+        // Link the new auth UUID to the existing customer record
+        if (isValidUuid && customer.user_id !== userId) {
+          try {
+            return await customerService.update(customer.id, { user_id: userId } as any);
+          } catch { /* ignore — return as-is if update fails */ }
+        }
+        return customer;
+      }
+    }
+
+    // ── 3. Create new customer ────────────────────────────────────────────
+    const insertData: any = {
+      id: isValidUuid ? userId : `CUST-${Date.now()}`,
       ...mapToDb(customerData),
-      updated_at: new Date().toISOString() 
+      updated_at: new Date().toISOString()
     };
 
-    // Handle user_id linking (Option 3: Verify user exists in Auth)
-    if (isUuid) {
-      try {
-        // We try to get the user to ensure they exist in auth.users
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user && user.id === userId) {
-          insertData.user_id = userId;
-        } else {
-          // If it's a UUID but not the current user, still try but be ready for FK error
-          insertData.user_id = userId;
-        }
-      } catch (e) {
-        insertData.user_id = userId;
-      }
+    if (isValidUuid) {
+      insertData.user_id = userId;
     } else {
-      // For mock/guest users, ensure user_id is null
       insertData.user_id = null;
     }
 
@@ -239,36 +240,38 @@ export const customerService = {
       .from(TABLE_NAME)
       .upsert([insertData], { onConflict: 'id' })
       .select()
-      .single();
+      .maybeSingle();
 
     if (insertError) {
       console.error('Supabase Error (GET OR CREATE CUSTOMER):', insertError);
-      
-      // Handle FK violation on user_id (Option 2/3 fallback)
+
+      // FK violation on user_id — retry without it
       if (insertError.code === '23503' && insertError.message.includes('user_id')) {
-        console.warn('Foreign key constraint failed for user_id, retrying with user_id: null');
         const { data: retry, error: retryErr } = await supabase
           .from(TABLE_NAME)
           .upsert([{ ...insertData, user_id: null }], { onConflict: 'id' })
           .select()
-          .single();
-        if (!retryErr) return mapCustomer(retry);
+          .maybeSingle();
+        if (!retryErr && retry) return mapCustomer(retry);
       }
-      
-      // If it failed due to unique constraint on email (another race condition), try fetching again
+
+      // Duplicate email — another record was inserted concurrently; fetch it
       if (insertError.code === '23505') {
-        const { data: retry } = await supabase
+        const emailToSearch = customerData.email || '';
+        const { data: raceResult } = await supabase
           .from(TABLE_NAME)
           .select('*')
-          .eq('id', userId)
+          .or(emailToSearch ? `id.eq.${insertData.id},email.eq.${emailToSearch}` : `id.eq.${insertData.id}`)
           .maybeSingle();
-        if (retry) return mapCustomer(retry);
+        if (raceResult) return mapCustomer(raceResult);
       }
+
       throw new Error(`فشل في الحصول على بيانات العميل أو إنشائها: ${insertError.message}`);
     }
 
     return mapCustomer(created);
   },
+
 
   subscribeToCustomers: (callback: (payload: any) => void) => {
     return supabase
