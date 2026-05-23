@@ -91,3 +91,8 @@ check_otp.js
 *.sql
 cors.json
 metadata.json
+
+# ─────────────────────────────────────────
+#  AI Assistant Local Cache
+# ─────────────────────────────────────────
+.gemini/
