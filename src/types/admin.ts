@@ -116,7 +116,6 @@ export interface Customer {
   phone: string;
   address?: string;
   addresses?: Address[];
-  password?: string;
   ordersCount: number;
   totalSpent: number;
   lastOrderDate: string;

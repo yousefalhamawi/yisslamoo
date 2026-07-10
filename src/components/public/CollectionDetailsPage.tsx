@@ -104,17 +104,18 @@ const CollectionDetailsPage: React.FC<CollectionDetailsPageProps> = ({
               </div>
 
               {collectionProducts.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10 items-stretch">
                       {collectionProducts.map((product) => (
-                          <ProductCard 
-                              key={product.id}
-                              product={product}
-                              onAddToCart={onAddToCart}
-                              onClick={() => navigate(`/product/${product.slug}`)}
-                              onQuickView={onQuickView}
-                              isWishlisted={wishlist.includes(product.id)}
-                              onToggleWishlist={() => onToggleWishlist(product.id)}
-                          />
+                          <div key={product.id} className="h-full">
+                              <ProductCard 
+                                  product={product}
+                                  onAddToCart={onAddToCart}
+                                  onClick={() => navigate(`/product/${product.slug}`)}
+                                  onQuickView={onQuickView}
+                                  isWishlisted={wishlist.includes(product.id)}
+                                  onToggleWishlist={() => onToggleWishlist(product.id)}
+                              />
+                          </div>
                       ))}
                   </div>
               ) : (

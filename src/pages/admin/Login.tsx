@@ -6,11 +6,9 @@ import { Lock, Mail, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 interface AdminLoginProps {
   onLogin: (email: string, password: string, rememberMe: boolean) => void;
   onSignUp: (email: string, password: string) => void;
-  onGoogleLogin: () => void;
-  onAnonymousLogin: () => void;
 }
 
-const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onSignUp, onGoogleLogin, onAnonymousLogin }) => {
+const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onSignUp }) => {
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('admin@yaslamo.com');
   const [showPassword, setShowPassword] = useState(false);

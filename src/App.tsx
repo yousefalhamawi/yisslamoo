@@ -7,6 +7,7 @@ import { validateEmail } from './utils/validation';
 import { Toaster } from 'react-hot-toast';
 import { Routes, Route, useNavigate, useParams, useLocation, Navigate, useSearchParams } from 'react-router-dom';
 import Navbar from './components/public/Navbar';
+import TopBar from './components/public/TopBar';
 import Hero from './components/public/Hero';
 import CategoryCircles from './components/public/CategoryCircles';
 import ProductCard from './components/public/ProductCard';
@@ -19,7 +20,7 @@ import CartDrawer from './components/public/CartDrawer';
 import CategoriesSection from './components/public/CategoriesSection';
 import WhyChooseUs from './components/public/WhyChooseUs';
 import Bestsellers from './components/public/Bestsellers';
-import Testimonials from './components/public/Testimonials';
+import ProductTabs from './components/public/ProductTabs';
 import LoginModal from './components/public/LoginModal';
 import QuickViewModal from './components/public/QuickViewModal';
 import Preloader from './components/public/Preloader';
@@ -39,6 +40,7 @@ import { useSharedStore } from './store/useSharedStore';
 import { Order, Customer } from './types/admin';
 import { orderService } from './services/orderService';
 import { customerService } from './services/customerService';
+import { productService } from './services/productService';
 import { toast as hotToast } from 'react-hot-toast';
 import { storage } from './services/storage';
 
@@ -91,12 +93,13 @@ const ShopWrapper: React.FC<{
 
 const ProductDetailsWrapper: React.FC<{
   products: Product[],
+  loading: boolean,
   addToCart: (p: Product) => void,
   handleBuyNow: (p: Product) => void,
   wishlist: string[],
   toggleWishlist: (id: string) => void,
   navigateToProduct: (p: Product) => void
-}> = ({ products, addToCart, handleBuyNow, wishlist, toggleWishlist, navigateToProduct }) => {
+}> = ({ products, loading, addToCart, handleBuyNow, wishlist, toggleWishlist, navigateToProduct }) => {
   const { productSlug } = useParams<{ productSlug: string }>();
   const navigate = useNavigate();
 
@@ -116,6 +119,16 @@ const ProductDetailsWrapper: React.FC<{
   const product = products.find(p => p.slug === decodedSlug || p.slug === productSlug);
 
   if (!product) {
+    if (loading) {
+      return (
+        <div className="min-h-screen bg-[#FCFBFA] flex items-center justify-center pt-32 pb-24" dir="rtl">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-[#2E1065] border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+            <p className="text-gray-500 font-bold text-lg">جاري تحميل تفاصيل المنتج...</p>
+          </div>
+        </div>
+      );
+    }
     console.warn(`Product not found for slug: ${productSlug}`);
     return <Navigate to="/shop" />;
   }
@@ -139,6 +152,7 @@ const App: React.FC = () => {
   const [showPreloader, setShowPreloader] = useState(true);
   const {
     products: storeProducts,
+    setProducts: storeSetProducts,
     addOrder: storeAddOrder,
     updateOrder: storeUpdateOrder,
     deleteOrder: storeDeleteOrder,
@@ -154,6 +168,7 @@ const App: React.FC = () => {
   } = useSharedStore();
 
   const [categories, setCategories] = useState<Category[]>([]);
+  const [isInitialDataLoaded, setIsInitialDataLoaded] = useState(false);
 
   // Real-time orders subscription
   useEffect(() => {
@@ -161,23 +176,36 @@ const App: React.FC = () => {
 
     // Initial fetch
     const fetchInitialData = async () => {
+      if (!checkSupabaseConfig()) return;
+
+      // 1. Fetch public data: products, categories, reviews
       try {
-        if (checkSupabaseConfig()) {
-          const [ordersData, customersData, categoriesData, reviewsData] = await Promise.all([
-            orderService.getAll(),
-            customerService.getAll(),
-            categoryService.getAll(),
-            reviewService.getAll()
-          ]);
-          storeSetOrders(ordersData);
-          storeSetCustomers(customersData);
+        const [productsData, categoriesData, reviewsData] = await Promise.all([
+          productService.getAll().catch(err => {
+            console.error('Failed to fetch products from Supabase, using mock fallback:', err);
+            return [];
+          }),
+          categoryService.getAll().catch(err => {
+            console.error('Failed to fetch categories from Supabase, using mock fallback:', err);
+            return [];
+          }),
+          reviewService.getAll().catch(err => {
+            console.error('Failed to fetch reviews from Supabase, using mock fallback:', err);
+            return [];
+          })
+        ]);
+
+        if (productsData && productsData.length > 0) {
+          storeSetProducts(productsData);
+        }
+        if (categoriesData && categoriesData.length > 0) {
           setCategories(categoriesData);
+        }
+        if (reviewsData && reviewsData.length > 0) {
           storeSetReviews(reviewsData);
         }
-        // تحميل سعر الصرف عند بدء التطبيق
-        initExchangeRate();
-      } catch (err) {
-        console.error('Failed to fetch initial data:', err);
+      } finally {
+        setIsInitialDataLoaded(true);
       }
     };
     fetchInitialData();
@@ -414,80 +442,12 @@ const App: React.FC = () => {
     navigate('/checkout');
   };
 
-  const handleLogin = async (data: { id?: string; name: string; email: string; phone: string; password?: string; isRegister: boolean }): Promise<boolean> => {
+  const handleLogin = async (data: { id?: string; name: string; email: string; phone: string; isRegister: boolean }): Promise<boolean> => {
     const existingCustomer = storeCustomers.find(c => c.email?.toLowerCase() === data.email.toLowerCase());
 
-    // Check if it's a social login (no password provided)
-    const isSocialLogin = !data.password;
-
-    if (isSocialLogin) {
-      if (!existingCustomer) {
-        const newCustomer: any = {
-          name: data.name || 'عميل يسلمو',
-          email: data.email,
-          phone: data.phone || '',
-          user_id: data.id,
-          ordersCount: 0,
-          totalSpent: 0,
-          lastOrderDate: new Date().toISOString().split('T')[0],
-          status: 'active'
-        };
-
-        if (checkSupabaseConfig() && data.id) {
-          try {
-            const customer = await customerService.getOrCreateCustomer(data.id, newCustomer);
-            storeAddCustomer(customer);
-            const newUser = { id: customer.id, name: customer.name, email: customer.email };
-            setUser(newUser);
-            storage.setItem('yaslamo_user', newUser);
-            hotToast.success(`مرحباً بك، ${customer.name}!`);
-            return true;
-          } catch (err) {
-            console.error('Failed to save social customer to Supabase:', err);
-            // Fallback to local store
-            const customerId = data.id || `CUST-${Date.now()}`;
-            storeAddCustomer({ ...newCustomer, id: customerId });
-            const newUser = { id: customerId, name: newCustomer.name, email: newCustomer.email };
-            setUser(newUser);
-            storage.setItem('yaslamo_user', newUser);
-            hotToast.success(`مرحباً بك، ${newCustomer.name}!`);
-            return true;
-          }
-        } else {
-          const customerId = data.id || `CUST-${Date.now()}`;
-          storeAddCustomer({ ...newCustomer, id: customerId });
-          const newUser = { id: customerId, name: newCustomer.name, email: newCustomer.email };
-          setUser(newUser);
-          storage.setItem('yaslamo_user', newUser);
-          hotToast.success(`مرحباً بك، ${newCustomer.name}!`);
-          return true;
-        }
-      }
-
-      const userToSet = existingCustomer;
-      const newUser = { id: userToSet.id, name: userToSet.name, email: userToSet.email };
-      setUser(newUser);
-      storage.setItem('yaslamo_user', newUser);
-      hotToast.success(`مرحباً بك، ${userToSet.name}!`);
-      return true;
-    }
-
-    // Manual login/registration with password
-    if (data.isRegister) {
-      if (existingCustomer) {
-        hotToast.error('هذا البريد الإلكتروني مسجل مسبقاً');
-        return false;
-      }
-
-      const phoneExists = data.phone && storeCustomers.some(c => c.phone === data.phone);
-      if (phoneExists) {
-        hotToast.error('فشل رقم الهاتف مسجل مسبقاً');
-        return false;
-      }
-
-      let customerId = data.id || `CUST-${Date.now()}`;
+    if (!existingCustomer) {
       const newCustomer: any = {
-        name: data.name,
+        name: data.name || 'عميل يسلمو',
         email: data.email,
         phone: data.phone || '',
         user_id: data.id,
@@ -497,52 +457,42 @@ const App: React.FC = () => {
         status: 'active'
       };
 
-      // If data.id is a valid UUID, use it as the primary ID
-      if (data.id && data.id.length > 20) {
-        newCustomer.id = data.id;
-      }
-
       if (checkSupabaseConfig() && data.id) {
         try {
           const customer = await customerService.getOrCreateCustomer(data.id, newCustomer);
-          customerId = customer.id;
           storeAddCustomer(customer);
+          const newUser = { id: customer.id, name: customer.name, email: customer.email };
+          setUser(newUser);
+          storage.setItem('yaslamo_user', newUser);
+          hotToast.success(`مرحباً بك، ${customer.name}!`);
+          return true;
         } catch (err) {
           console.error('Failed to save customer to Supabase:', err);
-          // Fallback to local store if Supabase fails
-          const localCustomer = { ...newCustomer, id: customerId };
-          storeAddCustomer(localCustomer);
+          const customerId = data.id || `CUST-${Date.now()}`;
+          storeAddCustomer({ ...newCustomer, id: customerId });
+          const newUser = { id: customerId, name: newCustomer.name, email: newCustomer.email };
+          setUser(newUser);
+          storage.setItem('yaslamo_user', newUser);
+          hotToast.success(`مرحباً بك، ${newCustomer.name}!`);
+          return true;
         }
       } else {
-        const localCustomer = { ...newCustomer, id: customerId };
-        storeAddCustomer(localCustomer);
+        const customerId = data.id || `CUST-${Date.now()}`;
+        storeAddCustomer({ ...newCustomer, id: customerId });
+        const newUser = { id: customerId, name: newCustomer.name, email: newCustomer.email };
+        setUser(newUser);
+        storage.setItem('yaslamo_user', newUser);
+        hotToast.success(`مرحباً بك، ${newCustomer.name}!`);
+        return true;
       }
-
-      const newUser = { id: customerId, name: data.name, email: data.email };
-      setUser(newUser);
-      storage.setItem('yaslamo_user', newUser);
-      hotToast.success(`مرحباً بك، ${data.name}!`);
-      return true;
-    } else {
-      // Login attempt
-      if (!existingCustomer) {
-        hotToast.error('فشل الحساب غير موجود');
-        return false;
-      }
-
-      // Check password
-      if (existingCustomer.password && data.password !== existingCustomer.password) {
-        hotToast.error('كلمة المرور غير صحيحة');
-        return false;
-      }
-
-      const userToSet = existingCustomer;
-      const newUser = { id: userToSet.id, name: userToSet.name, email: userToSet.email };
-      setUser(newUser);
-      storage.setItem('yaslamo_user', newUser);
-      hotToast.success(`أهلاً بك مجدداً، ${userToSet.name}!`);
-      return true;
     }
+
+    const userToSet = existingCustomer;
+    const newUser = { id: userToSet.id, name: userToSet.name, email: userToSet.email };
+    setUser(newUser);
+    storage.setItem('yaslamo_user', newUser);
+    hotToast.success(`مرحباً بك، ${userToSet.name}!`);
+    return true;
   };
 
   const handleLogout = async () => {
@@ -670,6 +620,14 @@ const App: React.FC = () => {
           <motion.div key="home" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <Hero />
             <CategoryCircles />
+            <ProductTabs 
+              products={products}
+              onAddToCart={addToCart}
+              onSelectProduct={navigateToProduct}
+              onQuickView={handleQuickView}
+              wishlist={wishlist}
+              onToggleWishlist={toggleWishlist}
+            />
 
             {!user && (
               <section className="py-24 relative overflow-hidden">
@@ -708,9 +666,9 @@ const App: React.FC = () => {
                   <div><span className="text-primary font-bold uppercase tracking-widest text-xs block mb-4">مختارات يسلمو</span><h2 className="text-4xl lg:text-5xl font-bold text-primaryDark tracking-tighter">هدايا منتقاة بعناية</h2></div>
                   <button onClick={() => navigateToShop()} className="text-primary font-bold flex items-center gap-3 hover:gap-6 transition-all hidden md:flex text-xl"><span>تصفح الكل</span><svg className="w-6 h-6 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg></button>
                 </div>
-                <div className="columns-1 sm:columns-2 lg:columns-4 gap-12 space-y-12">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 items-stretch">
                   {products.slice(0, 8).map((product, idx) => (
-                    <div key={`${product.id}-${idx}`} className="break-inside-avoid">
+                    <div key={`${product.id}-${idx}`} className="h-full">
                       <ProductCard product={product} onAddToCart={addToCart} onClick={navigateToProduct} onQuickView={handleQuickView} isWishlisted={wishlist.includes(product.id)} onToggleWishlist={() => toggleWishlist(product.id)} />
                     </div>
                   ))}
@@ -720,7 +678,6 @@ const App: React.FC = () => {
             <CategoriesSection />
             <WhyChooseUs />
             <Bestsellers products={products} onAddToCart={addToCart} onSelectProduct={navigateToProduct} onQuickView={handleQuickView} onViewAll={() => navigateToShop()} wishlist={wishlist} onToggleWishlist={toggleWishlist} />
-            <Testimonials />
             <section className="py-32 bg-primaryDark text-white text-center relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,_rgba(108,43,217,0.1),_transparent)] pointer-events-none" />
               <div className="container mx-auto px-6 max-w-3xl relative z-10">
@@ -744,7 +701,7 @@ const App: React.FC = () => {
         } />
         <Route path="/shop" element={<ShopWrapper products={products} categories={categories} addToCart={addToCart} navigateToProduct={navigateToProduct} handleQuickView={handleQuickView} wishlist={wishlist} toggleWishlist={toggleWishlist} />} />
         <Route path="/category/:categorySlug" element={<ShopWrapper products={products} categories={categories} addToCart={addToCart} navigateToProduct={navigateToProduct} handleQuickView={handleQuickView} wishlist={wishlist} toggleWishlist={toggleWishlist} />} />
-        <Route path="/product/:productSlug" element={<ProductDetailsWrapper products={products} addToCart={addToCart} handleBuyNow={handleBuyNow} wishlist={wishlist} toggleWishlist={toggleWishlist} navigateToProduct={navigateToProduct} />} />
+        <Route path="/product/:productSlug" element={<ProductDetailsWrapper products={products} loading={!isInitialDataLoaded} addToCart={addToCart} handleBuyNow={handleBuyNow} wishlist={wishlist} toggleWishlist={toggleWishlist} navigateToProduct={navigateToProduct} />} />
         <Route path="/collection/:collectionId" element={
           <CollectionDetailsPage
             onAddToCart={addToCart}
@@ -841,19 +798,22 @@ const App: React.FC = () => {
       <div className="min-h-screen bg-white selection:bg-accent selection:text-primaryDark text-right">
         <Toaster position="top-left" />
         {location.pathname !== '/admin' && !location.pathname.startsWith('/admin') && (
-          <Navbar
-            cartCount={cartItems.length}
-            wishlistCount={wishlist.length}
-            onOpenCart={() => setIsCartOpen(true)}
-            onNavigate={(page) => {
-              if (page === 'shop') navigate('/shop');
-              else if (page === 'home') navigate('/');
-              else navigate(`/${page}`);
-            }}
-            user={user}
-            onOpenLogin={() => setIsLoginModalOpen(true)}
-            onLogout={handleLogout}
-          />
+          <>
+            <TopBar />
+            <Navbar
+              cartCount={cartItems.length}
+              wishlistCount={wishlist.length}
+              onOpenCart={() => setIsCartOpen(true)}
+              onNavigate={(page) => {
+                if (page === 'shop') navigate('/shop');
+                else if (page === 'home') navigate('/');
+                else navigate(`/${page}`);
+              }}
+              user={user}
+              onOpenLogin={() => setIsLoginModalOpen(true)}
+              onLogout={handleLogout}
+            />
+          </>
         )}
         <AnimatePresence mode="wait">{renderContent()}</AnimatePresence>
         <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} onLogin={handleLogin} />

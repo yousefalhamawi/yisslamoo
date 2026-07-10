@@ -19,14 +19,13 @@ import ProfilePage from './Profile';
 import StaffPage from './Staff';
 import SliderPage from './Slider';
 import { AdminPageState } from '../../types/admin';
-import { storage } from '../../services/storage';
 import { useAuth } from '../../contexts/AuthContext';
 import { checkSupabaseConfig, supabaseUrl } from '../../supabase';
 import { profileService } from '../../services/profileService';
 import { AlertCircle } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
-  const { user, loading: authLoading, signIn, signUp, signInWithGoogle, signInAnonymously, signOut } = useAuth();
+  const { user, loading: authLoading, signIn, signUp, signOut } = useAuth();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState<AdminPageState>('dashboard');
@@ -35,104 +34,37 @@ const AdminDashboard: React.FC = () => {
 
   useEffect(() => {
     const checkAdminStatus = async () => {
-      if (!authLoading) {
-        if (user) {
-          const rememberMe = localStorage.getItem('admin_remember_me') === 'true';
-          const loginTimeStr = localStorage.getItem('admin_login_time');
-          const sessionActive = sessionStorage.getItem('admin_session_active') === 'true';
+      if (authLoading) return;
 
-          if (rememberMe && loginTimeStr) {
-            const loginTime = parseInt(loginTimeStr, 10);
-            if (Date.now() - loginTime > 24 * 60 * 60 * 1000) {
-              // Expired 24h
-              storage.removeItem('admin_session');
-              setIsAuthenticated(false);
-              signOut();
-              toast.error('انتهت الجلسة، يرجى تسجيل الدخول مجدداً');
-              setIsLoading(false);
-              return;
-            }
-          } else if (!rememberMe && !sessionActive) {
-            // Browser was closed and opened again
-            storage.removeItem('admin_session');
-            setIsAuthenticated(false);
-            signOut();
-            setIsLoading(false);
-            return;
-          }
-
-          // 1. Check hardcoded admin emails for immediate access
-          const adminEmails = ['yousefalhamawi2@gmail.com', 'alkhrraz3@gmail.com', 'admin@yaslamo.com'];
-          const isHardcodedAdmin = adminEmails.includes(user.email || '') || user.is_anonymous;
-
-          if (isHardcodedAdmin) {
-            setIsAuthenticated(true);
-            storage.setItem('admin_session', 'true');
-            setIsLoading(false);
-            return;
-          }
-
-          // 2. Check database for admin role
-          if (isConfigured) {
-            try {
-              // Try to find profile by ID first
-              let profile = await profileService.getProfile(user.id);
-
-              // If no profile by ID, try finding by email (for pre-authorized admins)
-              if (!profile || profile.email === '6masar@gmail.com') { // 6masar is the default fallback
-                const profileByEmail = await profileService.findByEmail(user.email || '');
-                if (profileByEmail) {
-                  // Link the existing email profile to this new user ID
-                  profile = await profileService.updateProfile({
-                    ...profileByEmail,
-                    id: user.id,
-                    name: user.user_metadata?.full_name || profileByEmail.name,
-                    avatar: user.user_metadata?.avatar_url || profileByEmail.avatar
-                  });
-                }
-              }
-
-              const hasAdminRole = profile && (profile.role === 'مدير النظام' || profile.role === 'مشرف');
-
-              if (hasAdminRole) {
-                setIsAuthenticated(true);
-                storage.setItem('admin_session', 'true');
-              } else {
-                setIsAuthenticated(false);
-                storage.removeItem('admin_session');
-                toast.error('ليس لديك صلاحيات الوصول للإدارة');
-              }
-            } catch (err) {
-              console.error('Failed to verify admin status:', err);
-              setIsAuthenticated(false);
-            }
-          } else {
-            setIsAuthenticated(false);
-          }
-        } else {
-          // Check if we have a mock admin session
-          const rawAdminSession = await storage.getItem('admin_session', 'false');
-          const hasAdminSession = String(rawAdminSession).toLowerCase() === 'true';
-          if (hasAdminSession) {
-            try {
-              // Sign in anonymously in the background so Supabase client has a valid session to bypass RLS
-              const { error } = await signInAnonymously();
-              if (error) {
-                console.warn("Failed to sign in anonymously for mock admin session:", error);
-                toast.error("تحذير: لا يمكن التعديل على قاعدة البيانات، الجلسة التجريبية غير فعالة (" + error.message + ")");
-              }
-            } catch (err: any) {
-              console.warn("Failed to sign in anonymously for mock admin session:", err);
-              toast.error("فشل في تهيئة جلسة التعديل: " + (err.message || ''));
-            }
-            setIsAuthenticated(true);
-          } else {
-            setIsAuthenticated(false);
-            storage.removeItem('admin_session');
-          }
-        }
+      if (!user) {
+        setIsAuthenticated(false);
         setIsLoading(false);
+        return;
       }
+
+      if (!isConfigured) {
+        setIsAuthenticated(false);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const profile = await profileService.getProfile(user.id);
+        const hasAdminRole = profile && (profile.role === 'مدير النظام' || profile.role === 'مشرف');
+
+        if (hasAdminRole) {
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+          toast.error('ليس لديك صلاحيات الوصول للإدارة');
+        }
+      } catch (err) {
+        console.error('Failed to verify admin status:', err);
+        setIsAuthenticated(false);
+        toast.error('فشل التحقق من صلاحيات الإدارة');
+      }
+
+      setIsLoading(false);
     };
 
     checkAdminStatus();
@@ -151,51 +83,11 @@ const AdminDashboard: React.FC = () => {
     return true;
   };
 
-  const handleLogin = async (email: string, password: string, rememberMe: boolean = false) => {
+  const handleLogin = async (email: string, password: string, _rememberMe: boolean = false) => {
     if (!validateForm(email, password)) return;
     try {
       const { error } = await signIn(email, password);
-      if (error) {
-        if (error.message === 'Invalid login credentials') {
-          // Check for mock admin credentials
-          if (email === 'admin@yaslamo.com' && password === 'Password123') {
-            try {
-              // Sign in anonymously so Supabase client has a valid session to bypass RLS
-              const { error } = await signInAnonymously();
-              if (error) {
-                console.warn("Failed to sign in anonymously for mock admin login:", error);
-                toast.error("تنبيه: أنت في الوضع التجريبي لكن التعديلات لن تُحفظ لأن التوثيق فشل (" + error.message + ")");
-              }
-            } catch (err: any) {
-              console.warn("Failed to sign in anonymously for mock admin login:", err);
-              toast.error("فشل في تهيئة جلسة التعديل: " + (err.message || ''));
-            }
-            setIsAuthenticated(true);
-            storage.setItem('admin_session', 'true');
-
-            if (rememberMe) {
-              localStorage.setItem('admin_remember_me', 'true');
-              localStorage.setItem('admin_login_time', Date.now().toString());
-            } else {
-              localStorage.setItem('admin_remember_me', 'false');
-            }
-            sessionStorage.setItem('admin_session_active', 'true');
-
-            toast.success('تم تسجيل الدخول كمسؤول (تجريبي)');
-            return;
-          }
-          throw error;
-        }
-        throw error;
-      }
-
-      if (rememberMe) {
-        localStorage.setItem('admin_remember_me', 'true');
-        localStorage.setItem('admin_login_time', Date.now().toString());
-      } else {
-        localStorage.setItem('admin_remember_me', 'false');
-      }
-      sessionStorage.setItem('admin_session_active', 'true');
+      if (error) throw error;
 
       toast.success('تم تسجيل الدخول بنجاح');
     } catch (error: any) {
@@ -250,34 +142,6 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleAnonymousLogin = async () => {
-    try {
-      const { error } = await signInAnonymously();
-      if (error) throw error;
-      toast.success('تم الدخول كزائر');
-    } catch (error: any) {
-      console.error('Anonymous login error:', error);
-      if (error.message === 'Failed to fetch') {
-        toast.error(
-          <div className="text-right" dir="rtl">
-            <p className="font-black mb-1">فشل الاتصال بـ Supabase</p>
-            <ul className="text-xs list-disc pr-4 space-y-1 opacity-90">
-              <li>تأكد من صحة الرابط: <code className="bg-slate-100 px-1">{supabaseUrl}</code></li>
-              <li>تأكد من أن مشروع Supabase ليس في وضع الخمول (Paused)</li>
-              <li>تأكد من اتصالك بالإنترنت</li>
-              <li>تأكد من عدم وجود مسافات أو علامات تنصيص في الإعدادات (Secrets)</li>
-            </ul>
-          </div>,
-          { duration: 6000 }
-        );
-      } else {
-        toast.error('فشل الدخول كزائر. تأكد من تفعيل Anonymous Auth في Supabase.');
-      }
-    }
-  };
-
-
-
   const handleLogout = async () => {
     try {
       await signOut();
@@ -285,11 +149,6 @@ const AdminDashboard: React.FC = () => {
       console.error("Supabase signOut error:", err);
     } finally {
       setIsAuthenticated(false);
-      await storage.removeItem('admin_session');
-      localStorage.removeItem('admin_session'); // إضافة مهمة لحذف الجلسة القديمة من LocalStorage
-      localStorage.removeItem('admin_remember_me');
-      localStorage.removeItem('admin_login_time');
-      sessionStorage.removeItem('admin_session_active');
     }
   };
 
@@ -325,8 +184,6 @@ const AdminDashboard: React.FC = () => {
       <AdminLogin 
         onLogin={handleLogin}
         onSignUp={handleSignUp}
-        onGoogleLogin={async () => { /* Google login not implemented yet */ }}
-        onAnonymousLogin={handleAnonymousLogin}
       />
     );
   }

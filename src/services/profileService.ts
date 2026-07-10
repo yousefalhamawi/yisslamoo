@@ -10,14 +10,6 @@ export interface AdminProfile {
   lastLogin: string;
 }
 
-const DEFAULT_PROFILE: AdminProfile = {
-  name: 'محمد أحمد',
-  email: '6masar@gmail.com',
-  role: 'مدير النظام',
-  avatar: 'https://i.pravatar.cc/150?u=6masar@gmail.com',
-  lastLogin: new Date().toISOString()
-};
-
 const TABLE_NAME = 'profiles';
 
 export const profileService = {
@@ -30,24 +22,7 @@ export const profileService = {
 
     if (error) {
       console.error('Supabase Error (GET):', error);
-      
-      // Check if the current user is one of the hardcoded admins
-      const { data: authData } = await supabase.auth.getUser();
-      const user = authData?.user;
-      const adminEmails = ['yousefalhamawi2@gmail.com', 'alkhrraz3@gmail.com', 'admin@yaslamo.com'];
-      
-      if (user && adminEmails.includes(user.email || '')) {
-        return {
-          id: userId,
-          name: user.user_metadata?.full_name || 'مدير يسلمو',
-          email: user.email || '',
-          role: 'مدير النظام',
-          avatar: user.user_metadata?.avatar_url || `https://i.pravatar.cc/150?u=${user.email}`,
-          lastLogin: new Date().toISOString()
-        };
-      }
-
-      return { ...DEFAULT_PROFILE, id: userId };
+      throw error;
     }
     return data as AdminProfile;
   },

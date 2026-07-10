@@ -1,0 +1,122 @@
+# Graph Report
+
+**Nodes:** 302 | **Edges:** 564 | **Communities:** 34
+
+## Hub Nodes (God Nodes)
+
+- **react** (degree: 64, community: 138)
+- **App.tsx** (degree: 42, community: 265)
+- **lucide_react** (degree: 39, community: 138)
+- **framer_motion** (degree: 32, community: 138)
+- **react_hot_toast** (degree: 29, community: 138)
+- **unpoison()** (degree: 28, community: 297)
+- **___supabase** (degree: 27, community: 255)
+- **AdminDashboard.tsx** (degree: 25, community: 124)
+- **___types_admin** (degree: 15, community: 191)
+- **Communities (19 total, 3 thin omitted)** (degree: 15, community: 162)
+
+## Surprising Connections
+
+- **Graph Report - WEBSITE  (2026-05-23)** -> **Communities (19 total, 3 thin omitted)** (contains) [community 181 -> 162]
+- **App.tsx** -> **react** (imports) [community 265 -> 138]
+- **App.tsx** -> **framer_motion** (imports) [community 265 -> 138]
+- **App.tsx** -> **react_hot_toast** (imports) [community 265 -> 138]
+- **App.tsx** -> **react_router_dom** (imports) [community 265 -> 138]
+- **App.tsx** -> **react_hot_toast** (imports) [community 265 -> 138]
+- **ErrorBoundary.tsx** -> **react** (imports) [community 275 -> 138]
+- **componentDidCatch()** -> **error** (calls) [community 275 -> 259]
+- **LoginModal.tsx** -> **______contexts_authcontext** (imports) [community 138 -> 124]
+- **AuthContext.tsx** -> **react** (imports) [community 271 -> 138]
+- **AuthContext.tsx** -> **___supabase** (imports) [community 271 -> 255]
+- **env.ts** -> **isConfigured()** (contains) [community 269 -> 297]
+- **useAnalytics.ts** -> **react** (imports) [community 187 -> 138]
+- **useAnalytics.ts** -> **___supabase** (imports) [community 187 -> 255]
+- **useCategories.ts** -> **react** (imports) [community 191 -> 138]
+- **useCategories.ts** -> **react_hot_toast** (imports) [community 191 -> 138]
+- **useCategories.ts** -> **___supabase** (imports) [community 191 -> 255]
+- **useCollections.ts** -> **___types_admin** (imports) [community 138 -> 191]
+- **useCoupons.ts** -> **___types_admin** (imports) [community 138 -> 191]
+- **useCoupons.ts** -> **___supabase** (imports) [community 138 -> 255]
+- **useCustomers.ts** -> **react** (imports) [community 191 -> 138]
+- **useCustomers.ts** -> **___store_usesharedstore** (imports) [community 191 -> 138]
+- **useCustomers.ts** -> **react_hot_toast** (imports) [community 191 -> 138]
+- **useCustomers.ts** -> **___supabase** (imports) [community 191 -> 255]
+- **useDashboard.ts** -> **react** (imports) [community 192 -> 138]
+- **useDashboard.ts** -> **___supabase** (imports) [community 192 -> 255]
+- **useExchangeRate.ts** -> **___store_usesharedstore** (imports) [community 193 -> 138]
+- **useExchangeRate.ts** -> **react_hot_toast** (imports) [community 193 -> 138]
+- **useExchangeRate.ts** -> **react** (imports) [community 193 -> 138]
+- **useExchangeRate.ts** -> **___supabase** (imports) [community 193 -> 255]
+- **useOrders.ts** -> **___types_admin** (imports) [community 138 -> 191]
+- **useOrders.ts** -> **___supabase** (imports) [community 138 -> 255]
+- **usePayments.ts** -> **react** (imports) [community 255 -> 138]
+- **usePricedProduct.ts** -> **___types_index** (imports) [community 138 -> 196]
+- **usePricedProduct.ts** -> **___utils_pricingengine** (imports) [community 138 -> 193]
+- **useProducts.ts** -> **___types_index** (imports) [community 138 -> 196]
+- **useProducts.ts** -> **___supabase** (imports) [community 138 -> 255]
+- **useProfile.ts** -> **react** (imports) [community 198 -> 138]
+- **useProfile.ts** -> **___supabase** (imports) [community 198 -> 255]
+- **useReviews.ts** -> **react** (imports) [community 255 -> 138]
+- **useReviews.ts** -> **react_hot_toast** (imports) [community 255 -> 138]
+- **useReviews.ts** -> **___types_admin** (imports) [community 255 -> 191]
+- **useSettings.ts** -> **___supabase** (imports) [community 138 -> 255]
+- **index.css** -> **react** (imports) [community 270 -> 138]
+- **index.css** -> **react_router_dom** (imports) [community 270 -> 138]
+- **index.css** -> **__contexts_authcontext** (imports) [community 270 -> 265]
+- **index.css** -> **__contexts_notificationcontext** (imports) [community 270 -> 265]
+- **initialData.tsx** -> **react** (imports) [community 196 -> 138]
+- **AdminDashboard.tsx** -> **react** (imports) [community 124 -> 138]
+- **AdminDashboard.tsx** -> **react_hot_toast** (imports) [community 124 -> 138]
+- **AdminDashboard.tsx** -> **______types_admin** (imports) [community 124 -> 138]
+- **AdminDashboard.tsx** -> **______supabase** (imports) [community 124 -> 138]
+- **AdminDashboard.tsx** -> **______services_profileservice** (imports) [community 124 -> 138]
+- **AdminDashboard.tsx** -> **lucide_react** (imports) [community 124 -> 138]
+- **addressService.ts** -> **___supabase** (imports) [community 191 -> 255]
+- **categoryService.ts** -> **___supabase** (imports) [community 191 -> 255]
+- **collectionService.ts** -> **___types_admin** (imports) [community 255 -> 191]
+- **couponService.ts** -> **___types_admin** (imports) [community 255 -> 191]
+- **customerService.ts** -> **___supabase** (imports) [community 191 -> 255]
+- **customerService.ts** -> **___utils_unpoison** (imports) [community 191 -> 63]
+- **exchangeRateService.ts** -> **react_hot_toast** (imports) [community 255 -> 138]
+- **exchangeRateService.ts** -> **___utils_pricingengine** (imports) [community 255 -> 193]
+- **orderService.ts** -> **___supabase** (imports) [community 251 -> 255]
+- **orderService.ts** -> **___types_admin** (imports) [community 251 -> 191]
+- **orderService.ts** -> **___utils_unpoison** (imports) [community 251 -> 63]
+- **paymentService.ts** -> **react_hot_toast** (imports) [community 255 -> 138]
+- **productService.ts** -> **___supabase** (imports) [community 63 -> 255]
+- **productService.ts** -> **___types_index** (imports) [community 63 -> 196]
+- **profileService.ts** -> **react_hot_toast** (imports) [community 255 -> 138]
+- **reviewService.ts** -> **___supabase** (imports) [community 191 -> 255]
+- **settingsService.ts** -> **___supabase** (imports) [community 138 -> 255]
+- **storage.ts** -> **idb_keyval** (imports) [community 259 -> 273]
+- **getItem()** -> **parse** (calls) [community 259 -> 297]
+- **getItem()** -> **parse** (calls) [community 259 -> 297]
+- **storage.ts** -> **removeItem()** (contains) [community 259 -> 260]
+- **removeItem()** -> **error** (calls) [community 260 -> 259]
+- **useSharedStore.ts** -> **___types_index** (imports) [community 273 -> 196]
+- **useSharedStore.ts** -> **___types_admin** (imports) [community 273 -> 191]
+- **useSharedStore.ts** -> **___mockdata_admindata** (imports) [community 273 -> 43]
+- **useSharedStore.ts** -> **___utils_unpoison** (imports) [community 273 -> 63]
+- **useSharedStore.ts** -> **___utils_pricingengine** (imports) [community 273 -> 193]
+- **useSharedStore.ts** -> **___services_exchangerateservice** (imports) [community 273 -> 193]
+- **index.ts** -> **react** (imports) [community 282 -> 138]
+- **pricingEngine.ts** -> **___types_index** (imports) [community 295 -> 196]
+- **pricingEngine.ts** -> **computeDisplayPrice()** (contains) [community 295 -> 289]
+- **computeOldDisplayPrice()** -> **round** (calls) [community 295 -> 289]
+- **pricingEngine.ts** -> **convertSYPtoUSD()** (contains) [community 295 -> 289]
+- **convertUSDtoSYP()** -> **round** (calls) [community 295 -> 289]
+- **pricingEngine.ts** -> **formatSYP()** (contains) [community 295 -> 293]
+- **formatSYP()** -> **tolocalestring** (calls) [community 293 -> 292]
+- **pricingEngine.ts** -> **formatUSD()** (contains) [community 295 -> 292]
+- **pricingEngine.ts** -> **getAdminPriceInfo()** (contains) [community 295 -> 293]
+- **getAdminPriceInfo()** -> **computeDisplayPrice()** (calls) [community 293 -> 289]
+- **getAdminPriceInfo()** -> **computeOldDisplayPrice()** (calls) [community 293 -> 295]
+
+## Suggested Questions
+
+- Why does react have so many connections?
+- Why does App.tsx have so many connections?
+- Why does lucide_react have so many connections?
+- Why does framer_motion have so many connections?
+- Why does react_hot_toast have so many connections?
+- What connects the 34 different communities?

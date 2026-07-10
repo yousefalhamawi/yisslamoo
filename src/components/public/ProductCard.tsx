@@ -102,7 +102,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onClick
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="group relative flex flex-col w-full bg-white overflow-hidden rounded-3xl border border-gray-100/50 hover:border-accent/30 transition-all duration-500 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
+      className="group relative flex flex-col w-full h-full bg-white overflow-hidden rounded-3xl border border-gray-100/50 hover:border-accent/30 transition-all duration-500 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
     >
       {/* Image Section */}
       <div className="relative aspect-[4/5] overflow-hidden bg-[#FBFBFB]">
@@ -175,23 +175,30 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onClick
 
       {/* Content Section */}
       <div className="p-5 flex flex-col flex-grow text-right">
-        {/* Categories */}
-        <div className="flex items-center gap-1.5 flex-wrap mb-2.5">
-          {subCategoryName && (
-            <>
-              <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md whitespace-nowrap">
-                {subCategoryName}
-              </span>
-              <span className="text-gray-300 text-[10px] px-0.5">/</span>
-            </>
+        {/* Categories & SKU */}
+        <div className="flex items-center justify-between gap-2 mb-2.5">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {subCategoryName && (
+              <>
+                <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md whitespace-nowrap">
+                  {subCategoryName}
+                </span>
+                <span className="text-gray-300 text-[10px] px-0.5">/</span>
+              </>
+            )}
+            <Link 
+              to={`/shop?category=${encodeURIComponent(product.category)}`}
+              className="text-[11px] font-bold text-accent hover:text-primaryDark transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {product.category}
+            </Link>
+          </div>
+          {product.sku && (
+            <span className="text-[9px] font-mono font-medium text-gray-400 bg-gray-100/50 px-1.5 py-0.5 rounded" dir="ltr">
+              #{product.sku}
+            </span>
           )}
-          <Link 
-            to={`/shop?category=${encodeURIComponent(product.category)}`}
-            className="text-[11px] font-bold text-accent hover:text-primaryDark transition-colors"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {product.category}
-          </Link>
         </div>
 
         {/* Title */}

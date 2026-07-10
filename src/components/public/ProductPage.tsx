@@ -397,17 +397,18 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
             {/* Product Grid */}
             {filteredProducts.length > 0 ? (
-              <div className={`grid gap-10 ${viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
+              <div className={`grid gap-10 items-stretch ${viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
                 {filteredProducts.map((product, idx) => (
-                  <ProductCard 
-                    key={`${product.id}-${idx}`}
-                    product={product}
-                    onAddToCart={onAddToCart}
-                    onClick={onSelectProduct}
-                    onQuickView={onQuickView}
-                    isWishlisted={wishlist.includes(product.id)}
-                    onToggleWishlist={() => onToggleWishlist(product.id)}
-                  />
+                  <div key={`${product.id}-${idx}`} className="h-full">
+                    <ProductCard 
+                      product={product}
+                      onAddToCart={onAddToCart}
+                      onClick={onSelectProduct}
+                      onQuickView={onQuickView}
+                      isWishlisted={wishlist.includes(product.id)}
+                      onToggleWishlist={() => onToggleWishlist(product.id)}
+                    />
+                  </div>
                 ))}
               </div>
             ) : (
