@@ -32,6 +32,7 @@ import OurStoryPage from './components/public/OurStoryPage';
 import PoliciesPage from './components/public/PoliciesPage';
 import { PRODUCTS } from './mockData/initialData';
 import { Product, User } from './types/index';
+import { SOCIAL_LINKS } from './constants/socialLinks';
 
 type PageState = 'home' | 'shop' | 'details' | 'wishlist' | 'collections' | 'checkout' | 'admin' | 'orders' | 'settings';
 
@@ -41,6 +42,7 @@ import { Order, Customer } from './types/admin';
 import { orderService } from './services/orderService';
 import { customerService } from './services/customerService';
 import { productService } from './services/productService';
+import { exchangeRateService } from './services/exchangeRateService';
 import { toast as hotToast } from 'react-hot-toast';
 import { storage } from './services/storage';
 
@@ -174,6 +176,8 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!checkSupabaseConfig()) return;
 
+    void initExchangeRate();
+
     // Initial fetch
     const fetchInitialData = async () => {
       if (!checkSupabaseConfig()) return;
@@ -236,9 +240,14 @@ const App: React.FC = () => {
       }
     });
 
+    const exchangeRateSubscription = exchangeRateService.subscribeToRate((rate, updatedAt) => {
+      useSharedStore.getState().setExchangeRate(rate, updatedAt);
+    });
+
     return () => {
       orderSubscription.unsubscribe();
       customerSubscription.unsubscribe();
+      exchangeRateSubscription.unsubscribe();
     };
   }, []);
   const [cartItems, setCartItems] = useState<Product[]>([]);
@@ -687,7 +696,7 @@ const App: React.FC = () => {
                 <h2 className="text-4xl font-bold mb-8 tracking-tight">كن جزءاً من عالم يسلمو</h2>
                 <p className="text-white/60 text-lg mb-12 leading-relaxed max-w-2xl mx-auto font-normal">احصل على عروض حصرية، معاينات للمجموعات القادمة، وخصومات تصل إلى ٢٥٪ لمشتركي النشرة فقط.</p>
 
-                <a href="https://whatsapp.com/channel/yaslamo" target='_blank'>
+                <a href={SOCIAL_LINKS.whatsappChannel} target="_blank" rel="noopener noreferrer">
                   <button className="px-12 py-4 bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold rounded-2xl shadow-2xl shadow-[#25D366]/20 hover:scale-[1.02] active:scale-95 transition-all text-lg flex items-center justify-center gap-3 mx-auto">
                     <svg className="w-5 h-5 fill-current" viewBox="0 0 16 16">
                       <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
@@ -834,36 +843,41 @@ const App: React.FC = () => {
 
                 {/* Social Media Links */}
                 <div className="flex items-center gap-3 justify-start flex-wrap">
-                  <a href="https://facebook.com/yaslamo" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#D4AF37] hover:border-[#D4AF37] bg-white transition-all duration-300 hover:scale-105" title="فيسبوك">
+                  <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#D4AF37] hover:border-[#D4AF37] bg-white transition-all duration-300 hover:scale-105" title="فيسبوك">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c4.56-.93 8-4.96 8-9.75z" />
                     </svg>
                   </a>
-                  <a href="https://instagram.com/yaslamo" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#D4AF37] hover:border-[#D4AF37] bg-white transition-all duration-300 hover:scale-105" title="إنستغرام">
+                  <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#D4AF37] hover:border-[#D4AF37] bg-white transition-all duration-300 hover:scale-105" title="إنستغرام">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
                     </svg>
                   </a>
-                  <a href="https://tiktok.com/@yaslamo" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#D4AF37] hover:border-[#D4AF37] bg-white transition-all duration-300 hover:scale-105" title="تيكتوك">
+                  <a href={SOCIAL_LINKS.tiktok} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#D4AF37] hover:border-[#D4AF37] bg-white transition-all duration-300 hover:scale-105" title="تيكتوك">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.02 1.59 4.23.99 1.15 2.37 1.93 3.86 2.19v3.81c-1.63-.09-3.2-.67-4.52-1.65-.21-.15-.41-.32-.61-.5v6.52c-.05 1.89-.73 3.73-1.94 5.17-1.44 1.76-3.66 2.76-5.94 2.72-2.02.04-4.01-.76-5.46-2.18-1.57-1.47-2.45-3.59-2.4-5.78-.07-2.31.97-4.55 2.74-6.02 1.63-1.42 3.83-2.13 5.99-1.92v3.91c-1.18-.18-2.4.15-3.32.93-.93.75-1.45 1.89-1.41 3.09-.04 1.18.45 2.33 1.32 3.12.92.87 2.21 1.29 3.44 1.1 1.25-.14 2.35-.94 2.87-2.08.3-.59.43-1.25.4-1.91V.02z" />
                     </svg>
                   </a>
-                  <a href="https://x.com/yaslamo" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#D4AF37] hover:border-[#D4AF37] bg-white transition-all duration-300 hover:scale-105" title="اكس">
+                  <a href={SOCIAL_LINKS.x} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#D4AF37] hover:border-[#D4AF37] bg-white transition-all duration-300 hover:scale-105" title="اكس">
                     <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                     </svg>
                   </a>
-                  <a href="https://threads.net/@yaslamo" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#D4AF37] hover:border-[#D4AF37] bg-white transition-all duration-300 hover:scale-105" title="تريدز">
+                  <a href={SOCIAL_LINKS.threads} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#D4AF37] hover:border-[#D4AF37] bg-white transition-all duration-300 hover:scale-105" title="تريدز">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 16 16">
                       <path d="M6.321 6.016c-.27-.18-1.166-.802-1.166-.802.756-1.081 1.753-1.502 3.132-1.502.975 0 1.803.327 2.394.948s.928 1.509 1.005 2.644q.492.207.905.484c1.109.745 1.719 1.86 1.719 3.137 0 2.716-2.226 5.075-6.256 5.075C4.594 16 1 13.987 1 7.994 1 2.034 4.482 0 8.044 0 9.69 0 13.55.243 15 5.036l-1.36.353C12.516 1.974 10.163 1.43 8.006 1.43c-3.565 0-5.582 2.171-5.582 6.79 0 4.143 2.254 6.343 5.63 6.343 2.777 0 4.847-1.443 4.847-3.556 0-1.438-1.208-2.127-1.27-2.127-.236 1.234-.868 3.31-3.644 3.31-1.618 0-3.013-1.118-3.013-2.582 0-2.09 1.984-2.847 3.55-2.847.586 0 1.294.04 1.663.114 0-.637-.54-1.728-1.9-1.728-1.25 0-1.566.405-1.967.868ZM8.716 8.19c-2.04 0-2.304.87-2.304 1.416 0 .878 1.043 1.168 1.6 1.168 1.02 0 2.067-.282 2.232-2.423a6.2 6.2 0 0 0-1.528-.161"/>
                     </svg>
                   </a>
-                  <a href="https://whatsapp.com/channel/yaslamo" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#D4AF37] hover:border-[#D4AF37] bg-white transition-all duration-300 hover:scale-105" title="قناة الواتساب">
+                  <a href={SOCIAL_LINKS.whatsappChannel} target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:text-[#D4AF37] hover:border-[#D4AF37] bg-white transition-all duration-300 hover:scale-105" title="قناة الواتساب">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 2C6.48 2 2 6.48 2 12c0 2.17.7 4.19 1.9 5.86L2.5 21.5l3.8-1.3C7.88 21.3 9.87 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-4h2v4zm0-6h-2V8h2v2z" />
                     </svg>
                   </a>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-x-3 gap-y-2 text-[10px] font-semibold text-gray-500">
+                  <a href={SOCIAL_LINKS.telegram} target="_blank" rel="noopener noreferrer" className="hover:text-[#D4AF37]">تيليغرام</a>
+                  <a href={SOCIAL_LINKS.pinterest} target="_blank" rel="noopener noreferrer" className="hover:text-[#D4AF37]">Pinterest</a>
+                  <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer" className="hover:text-[#D4AF37]" dir="ltr">WhatsApp: {SOCIAL_LINKS.whatsappDisplayNumber}</a>
                 </div>
               </div>
 
@@ -899,7 +913,7 @@ const App: React.FC = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-[10px] text-gray-500 font-bold leading-none mb-1">الدعم الفني والتقني</p>
-                      <a href="https://wa.me/963930000000" target="_blank" rel="noopener noreferrer" className="font-bold text-xs text-gray-900 hover:text-[#D4AF37] transition-colors" dir="ltr">+963 930 000 000</a>
+                      <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer" className="font-bold text-xs text-gray-900 hover:text-[#D4AF37] transition-colors" dir="ltr">{SOCIAL_LINKS.whatsappDisplayNumber}</a>
                     </div>
                   </div>
 
@@ -911,7 +925,7 @@ const App: React.FC = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-[10px] text-gray-500 font-bold leading-none mb-1">الشكاوى والاقتراحات</p>
-                      <a href="https://wa.me/963930111222" target="_blank" rel="noopener noreferrer" className="font-bold text-xs text-gray-900 hover:text-[#D4AF37] transition-colors" dir="ltr">+963 930 111 222</a>
+                      <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer" className="font-bold text-xs text-gray-900 hover:text-[#D4AF37] transition-colors" dir="ltr">{SOCIAL_LINKS.whatsappDisplayNumber}</a>
                     </div>
                   </div>
                 </div>

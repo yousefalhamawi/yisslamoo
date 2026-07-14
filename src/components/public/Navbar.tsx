@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { User } from '../../types/index';
 import { useNotifications } from '../../contexts/NotificationContext';
-import { Bell, LucideIcon, CheckCircle2, AlertCircle, Info, ShoppingCart, Heart, Package, Trash2, CheckCheck, X, Home, User as UserIcon, LayoutGrid } from 'lucide-react';
+import { Bell, LucideIcon, CheckCircle2, AlertCircle, Info, ShoppingCart, Heart, Package, Trash2, CheckCheck, X, House, CircleUserRound, Grid2x2, ShoppingBag } from 'lucide-react';
 
 interface NavbarProps {
   cartCount: number;
@@ -483,22 +483,22 @@ const Navbar: React.FC<NavbarProps> = ({
         className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 py-3.5 flex items-center justify-around z-[150] shadow-[0_-8px_30px_rgba(0,0,0,0.06)] pb-safe"
         dir="rtl"
       >
-        {/* الفئات */}
-        <button 
-          onClick={() => navigate('/shop')}
-          className={`flex flex-col items-center justify-center gap-1.5 flex-1 transition-colors duration-200 ${location.pathname === '/shop' ? 'text-[#FF3B30]' : 'text-gray-400 hover:text-gray-700'}`}
-        >
-          <LayoutGrid className="w-6 h-6 stroke-[1.5]" />
-          <span className="text-[11px] font-bold tracking-tight">الفئات</span>
-        </button>
-
         {/* الرئيسية */}
         <button 
           onClick={() => navigate('/')}
-          className={`flex flex-col items-center justify-center gap-1.5 flex-1 transition-colors duration-200 ${location.pathname === '/' ? 'text-[#FF3B30]' : 'text-gray-400 hover:text-gray-700'}`}
+          className={`flex flex-col items-center justify-center gap-1.5 flex-1 transition-colors duration-200 ${location.pathname === '/' ? 'text-[#2E1065]' : 'text-gray-400 hover:text-gray-700'}`}
         >
-          <Home className={`w-6 h-6 stroke-[1.5] ${location.pathname === '/' ? 'fill-[#FF3B30]/10' : ''}`} />
+          <House className={`w-6 h-6 stroke-[1.5] ${location.pathname === '/' ? 'fill-[#2E1065]/10' : ''}`} />
           <span className="text-[11px] font-bold tracking-tight">الرئيسية</span>
+        </button>
+
+        {/* الفئات */}
+        <button 
+          onClick={() => navigate('/shop')}
+          className={`flex flex-col items-center justify-center gap-1.5 flex-1 transition-colors duration-200 ${location.pathname === '/shop' ? 'text-[#2E1065]' : 'text-gray-400 hover:text-gray-700'}`}
+        >
+          <Grid2x2 className="w-6 h-6 stroke-[1.5]" />
+          <span className="text-[11px] font-bold tracking-tight">الفئات</span>
         </button>
 
         {/* العربة */}
@@ -507,14 +507,14 @@ const Navbar: React.FC<NavbarProps> = ({
           className="flex flex-col items-center justify-center gap-1.5 flex-1 text-gray-400 hover:text-gray-700 relative"
         >
           <div className="relative">
-            <ShoppingCart className="w-6 h-6 stroke-[1.5]" />
+            <ShoppingBag className="w-6 h-6 stroke-[1.5]" />
             {cartCount > 0 && (
-              <span className="absolute -top-2 -right-2 min-w-[16px] h-4 bg-[#FF3B30] text-white text-[8px] font-black rounded-full flex items-center justify-center border-2 border-white px-1">
+              <span className="absolute -top-2 -right-2 min-w-[16px] h-4 bg-[#2E1065] text-white text-[8px] font-black rounded-full flex items-center justify-center border-2 border-white px-1">
                 {cartCount}
               </span>
             )}
           </div>
-          <span className="text-[11px] font-bold tracking-tight">العربة</span>
+          <span className="text-[11px] font-bold tracking-tight">السلة</span>
         </button>
 
         {/* حسابي */}
@@ -526,9 +526,9 @@ const Navbar: React.FC<NavbarProps> = ({
               onOpenLogin();
             }
           }}
-          className={`flex flex-col items-center justify-center gap-1.5 flex-1 transition-colors duration-200 ${location.pathname === '/settings' ? 'text-[#FF3B30]' : 'text-gray-400 hover:text-gray-700'}`}
+          className={`flex flex-col items-center justify-center gap-1.5 flex-1 transition-colors duration-200 ${location.pathname === '/settings' ? 'text-[#2E1065]' : 'text-gray-400 hover:text-gray-700'}`}
         >
-          <UserIcon className="w-6 h-6 stroke-[1.5]" />
+          <CircleUserRound className="w-6 h-6 stroke-[1.5]" />
           <span className="text-[11px] font-bold tracking-tight">حسابي</span>
         </button>
       </div>

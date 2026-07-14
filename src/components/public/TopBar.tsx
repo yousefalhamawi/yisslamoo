@@ -1,15 +1,5 @@
 import React from 'react';
-
-// ─── روابط التواصل الاجتماعي — عدّلها هنا فقط ────────────────────────────
-const SOCIAL_LINKS = {
-  facebook:        '',
-  instagram:       '',
-  tiktok:          '',
-  x:               '',
-  whatsappChannel: '',   // رابط قناة الواتساب
-  whatsappNumber:  '',   // رقم الواتساب الخاص (مثال: 963912345678) بدون + أو 00
-};
-// ─────────────────────────────────────────────────────────────────────────────
+import { SOCIAL_LINKS as officialSocialLinks } from '../../constants/socialLinks';
 
 /* ── أيقونات SVG مدمجة (بدون مكتبة خارجية) ─────────────────────────────── */
 const IconFacebook = () => (
@@ -33,6 +23,24 @@ const IconTiktok = () => (
 const IconX = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.254 5.622 5.91-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+  </svg>
+);
+
+const IconTelegram = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+    <path d="M21.42 3.39a1.5 1.5 0 00-1.54-.2L2.57 10.16a1.5 1.5 0 00.1 2.82l4.37 1.48 1.49 4.67a1.5 1.5 0 002.54.58l2.44-2.5 4.2 3.08a1.5 1.5 0 002.36-.88l3.1-14.5a1.5 1.5 0 00-.75-1.52zM9.3 14.15l8.5-6.58-6.83 7.54-.27 1.95-.88-2.76-.52-.15z"/>
+  </svg>
+);
+
+const IconThreads = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+    <path d="M12.19 2C6.74 2 3.1 5.69 3.1 11.1c0 5.3 3.5 8.9 8.98 8.9 4.6 0 7.82-2.59 7.82-6.3 0-3.46-2.5-5.63-6.55-5.63-2.94 0-4.97 1.43-5.44 3.84l2.39.46c.28-1.25 1.3-1.95 2.88-1.95 2.29 0 3.68 1.16 3.68 3.08 0 .54-.1 1.03-.29 1.47-.36-2.44-2.11-3.87-4.74-3.87-2.54 0-4.22 1.49-4.22 3.71 0 2.11 1.67 3.55 4.2 3.55 2.15 0 3.84-.84 4.79-2.37-.85 2.08-2.86 3.3-5.58 3.3-4.02 0-6.5-2.76-6.5-7.19 0-4.64 2.6-7.47 6.79-7.47 3.33 0 5.8 1.69 6.59 4.53l2.36-.64C19.06 4.48 16.07 2 12.19 2zm-.2 14.1c-1.19 0-1.94-.52-1.94-1.35 0-.94.86-1.55 2.18-1.55 1.6 0 2.61.75 2.61 1.92 0 .54-.13.78-.37.78-.34 0-.59-.17-.59-.52 0-.87-.76-1.28-1.89-1.28-.45 0-.83.08-1.14.25.19-.46.61-.7 1.14-.7 1.7 0 2.49.95 2.49 2.12 0 .2-.02.4-.07.59-.67.49-1.46.74-2.42.74z"/>
+  </svg>
+);
+
+const IconPinterest = () => (
+  <svg viewBox="0 0 112.198 112.198" width="16" height="16" aria-hidden="true">
+    <path fill="currentColor" d="M60.627 75.122c-4.241-.328-6.023-2.431-9.349-4.45-1.828 9.591-4.062 18.785-10.679 23.588-2.045-14.496 2.998-25.384 5.34-36.941-3.992-6.72.48-20.246 8.9-16.913 10.363 4.098-8.972 24.987 4.008 27.596 13.551 2.724 19.083-23.513 10.679-32.047-12.142-12.321-35.343-.28-32.49 17.358.695 4.312 5.151 5.621 1.78 11.571-7.771-1.721-10.089-7.85-9.791-16.021.481-13.375 12.018-22.74 23.59-24.036 14.635-1.638 28.371 5.374 30.267 19.14 2.833 16.537-5.907 33.363-21.555 32.155z" />
   </svg>
 );
 
@@ -63,7 +71,7 @@ const SocialIcon: React.FC<SocialIconProps> = ({ href, icon, label }) => {
         target="_blank"
         rel="noopener noreferrer"
         aria-label={label}
-        className="text-white/70 hover:text-[#D4AF37] transition-colors duration-200 flex items-center justify-center"
+        className="w-6 h-6 text-white/70 hover:text-[#D4AF37] transition-colors duration-200 flex items-center justify-center"
       >
         {icon}
       </a>
@@ -72,7 +80,7 @@ const SocialIcon: React.FC<SocialIconProps> = ({ href, icon, label }) => {
   return (
     <span
       aria-label={label}
-      className="text-white/50 flex items-center justify-center"
+      className="w-6 h-6 text-white/50 flex items-center justify-center"
     >
       {icon}
     </span>
@@ -81,9 +89,7 @@ const SocialIcon: React.FC<SocialIconProps> = ({ href, icon, label }) => {
 
 /* ── الشريط العلوي ──────────────────────────────────────────────────────── */
 const TopBar: React.FC = () => {
-  const whatsappNumberHref = SOCIAL_LINKS.whatsappNumber
-    ? `https://wa.me/${SOCIAL_LINKS.whatsappNumber}`
-    : '';
+  const whatsappNumberHref = officialSocialLinks.whatsapp;
 
   return (
     <div
@@ -98,16 +104,19 @@ const TopBar: React.FC = () => {
       </div>
 
       {/* يسار: أيقونات التواصل */}
-      <div className="flex items-center gap-3" style={{ direction: 'ltr' }}>
-        <SocialIcon href={SOCIAL_LINKS.facebook}  icon={<IconFacebook />}  label="Facebook" />
-        <SocialIcon href={SOCIAL_LINKS.instagram} icon={<IconInstagram />} label="Instagram" />
-        <SocialIcon href={SOCIAL_LINKS.tiktok}    icon={<IconTiktok />}    label="TikTok" />
-        <SocialIcon href={SOCIAL_LINKS.x}         icon={<IconX />}         label="X / Twitter" />
+      <div className="flex items-center gap-1 sm:gap-3" style={{ direction: 'ltr' }}>
+        <SocialIcon href={officialSocialLinks.facebook}  icon={<IconFacebook />}  label="Facebook" />
+        <SocialIcon href={officialSocialLinks.instagram} icon={<IconInstagram />} label="Instagram" />
+        <SocialIcon href={officialSocialLinks.telegram}  icon={<IconTelegram />}  label="تيليغرام" />
+        <SocialIcon href={officialSocialLinks.threads}   icon={<IconThreads />}   label="ثريدز" />
+        <SocialIcon href={officialSocialLinks.tiktok}    icon={<IconTiktok />}    label="TikTok" />
+        <SocialIcon href={officialSocialLinks.x}         icon={<IconX />}         label="X / Twitter" />
+        <SocialIcon href={officialSocialLinks.pinterest} icon={<IconPinterest />} label="Pinterest" />
 
 
         <span className="w-px h-3 bg-white/20 mx-0.5" />
 
-        <SocialIcon href={SOCIAL_LINKS.whatsappChannel} icon={<IconWhatsapp />} label="قناة الواتساب" />
+        <SocialIcon href={officialSocialLinks.whatsappChannel} icon={<IconWhatsapp />} label="قناة الواتساب" />
         <SocialIcon href={whatsappNumberHref}            icon={<IconPhone />}    label="واتساب مباشر" />
       </div>
     </div>

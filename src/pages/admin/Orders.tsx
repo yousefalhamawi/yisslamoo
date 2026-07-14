@@ -302,7 +302,7 @@ const OrdersPage: React.FC = () => {
                                 </div>
                               )}
                             </div>
-                            <div className="text-left">
+                            <div className="text-right">
                               <p className="font-black text-slate-900">{item.price.toLocaleString()} ل.س</p>
                               <p className="text-xs text-slate-400 font-bold">الإجمالي: {(item.price * item.quantity).toLocaleString()} ل.س</p>
                             </div>

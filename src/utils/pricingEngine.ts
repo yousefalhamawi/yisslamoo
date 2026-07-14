@@ -58,13 +58,19 @@ export function computeOldDisplayPrice(
 
   if (!product.oldPrice || product.oldPrice <= 0) return undefined;
 
-  // إذا كان المنتج في وضع تلقائي، السعر القديم يُحسب كنسبة من السعر الحالي
-  // (السعر القديم المخزون يُعامل كـ USD في الوضع التلقائي أيضاً)
-  if (product.pricing_mode === 'auto') {
-    return Math.round(product.oldPrice * exchangeRate);
-  }
-
+  // السعر القديم يُدخل ويُخزن دائماً بالليرة السورية من لوحة الإدارة.
   return product.oldPrice;
+}
+
+/** Keeps all product surfaces on the same current and previous price calculation. */
+export function getProductDisplayPrices(
+  product: Pick<Product, 'price' | 'oldPrice' | 'price_usd' | 'price_syp_manual' | 'pricing_mode'>,
+  exchangeRate: number
+): { price: number; oldPrice: number | undefined } {
+  return {
+    price: computeDisplayPrice(product, exchangeRate),
+    oldPrice: computeOldDisplayPrice(product, exchangeRate),
+  };
 }
 
 /**

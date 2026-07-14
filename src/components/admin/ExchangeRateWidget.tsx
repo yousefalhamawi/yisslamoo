@@ -276,7 +276,7 @@ const ExchangeRateWidget: React.FC<ExchangeRateWidgetProps> = ({ variant = 'comp
                           <span className="text-sm font-black text-slate-900">{log.rate.toLocaleString()} ل.س/$</span>
                           {log.note && <span className="text-[10px] text-slate-400 font-bold mr-2">— {log.note}</span>}
                         </div>
-                        <div className="text-left">
+                        <div className="text-right">
                           <p className="text-[10px] text-slate-400 font-bold">
                             {new Date(log.created_at).toLocaleDateString('ar-SY')}
                           </p>

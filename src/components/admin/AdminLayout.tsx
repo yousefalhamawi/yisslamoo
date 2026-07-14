@@ -202,7 +202,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, currentPage, onNavi
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className="flex items-center gap-3 p-1.5 hover:bg-slate-50 rounded-xl transition-all"
               >
-                <div className="text-left hidden sm:block">
+                <div className="text-right hidden sm:block">
                   <p className="text-sm font-black text-slate-900">أدمن</p>
                   <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">مدير المتجر</p>
                 </div>

@@ -1022,7 +1022,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
                           <p className="font-bold text-base text-textMain line-clamp-1 mb-1">{item.name}</p>
                           <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-lg font-bold">×{item.quantity || 1}</span>
                         </div>
-                        <p className="text-sm text-primary font-black mb-3">{(item.price * (item.quantity || 1)).toLocaleString()} ل.س</p>
+                        <p className="text-sm text-primary font-black mb-3">{(computeDisplayPrice(item, exchangeRate) * (item.quantity || 1)).toLocaleString()} ل.س</p>
                         
                         {/* Selected Options Display */}
                         <div className="space-y-1.5 border-t border-gray-50 pt-2">

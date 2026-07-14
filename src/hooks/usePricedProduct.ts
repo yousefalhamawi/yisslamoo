@@ -3,9 +3,9 @@ import { Product } from '../types/index';
 import { useSharedStore } from '../store/useSharedStore';
 import {
   computeDisplayPrice,
-  computeOldDisplayPrice,
   formatSYP,
   getAdminPriceInfo,
+  getProductDisplayPrices,
 } from '../utils/pricingEngine';
 
 /**
@@ -16,8 +16,7 @@ export const usePricedProduct = (product: Product) => {
   const exchangeRate = useSharedStore((s) => s.exchangeRate);
 
   return useMemo(() => {
-    const displayPrice = computeDisplayPrice(product, exchangeRate);
-    const displayOldPrice = computeOldDisplayPrice(product, exchangeRate);
+    const { price: displayPrice, oldPrice: displayOldPrice } = getProductDisplayPrices(product, exchangeRate);
     const adminInfo = getAdminPriceInfo(product, exchangeRate);
 
     return {

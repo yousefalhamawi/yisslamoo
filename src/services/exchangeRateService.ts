@@ -13,23 +13,28 @@ export interface ExchangeRateLog {
 const SETTINGS_TABLE = 'settings';
 const LOG_TABLE = 'exchange_rate_log';
 
+export function getExchangeRateFromSettingsRecord(record: unknown): number | undefined {
+  if (!record || typeof record !== 'object') return undefined;
+
+  const rate = Number(record.exchange_rate);
+  return isValidExchangeRate(rate) ? rate : undefined;
+}
+
 export const exchangeRateService = {
   /**
-   * جلب سعر الصرف الحالي من جدول settings
-   */
+  * جلب سعر الصرف الحالي من جدول settings
+  */
   getRate: async (): Promise<number> => {
-    const { data, error } = await supabase
-      .from(SETTINGS_TABLE)
-      .select('exchange_rate')
-      .maybeSingle();
+    const { data, error } = await supabase.rpc('get_public_exchange_rate');
+    const record = Array.isArray(data) ? data[0] : data;
+    const rate = getExchangeRateFromSettingsRecord(record);
 
-    if (error || !data) {
+    if (error || !rate) {
       console.warn('exchangeRateService.getRate: فشل الجلب، استخدام القيمة الافتراضية 110');
       return 110;
     }
 
-    const rate = Number(data.exchange_rate);
-    return isValidExchangeRate(rate) ? rate : 110;
+    return rate;
   },
 
   /**
@@ -43,10 +48,16 @@ export const exchangeRateService = {
     const now = new Date().toISOString();
 
     // 1. تحديث في settings
-    const { data: existingSettings } = await supabase
+    const { data: existingSettings, error: lookupError } = await supabase
       .from(SETTINGS_TABLE)
       .select('id')
+      .eq('id', 'default')
       .maybeSingle();
+
+    if (lookupError) {
+      console.error('exchangeRateService.updateRate (settings lookup):', lookupError);
+      throw new Error('فشل في التحقق من إعدادات سعر الصرف');
+    }
 
     let settingsError;
     if (existingSettings) {
@@ -116,5 +127,23 @@ export const exchangeRateService = {
     }
 
     return (data || []) as ExchangeRateLog[];
+  },
+
+  subscribeToRate: (callback: (rate: number, updatedAt?: string) => void) => {
+    return supabase
+      .channel('exchange-rate-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: SETTINGS_TABLE }, (payload) => {
+        const record = payload.new;
+        const rate = getExchangeRateFromSettingsRecord(record);
+
+        if (rate) {
+          const updatedAt = typeof record === 'object' && record && 'exchange_rate_updated_at' in record
+            && typeof record.exchange_rate_updated_at === 'string'
+            ? record.exchange_rate_updated_at
+            : undefined;
+          callback(rate, updatedAt);
+        }
+      })
+      .subscribe();
   },
 };

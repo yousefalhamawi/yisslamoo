@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getStableListKey } from '../../utils/stableListKey';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Monitor,
@@ -300,7 +301,7 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
                     // Asymmetric heights for creative magazine layout look
                     return (
                       <motion.div
-                        key={product.id}
+                        key={getStableListKey(product.id, product.slug, 'product', index)}
                         layout
                         whileHover={{ y: -8, scale: 1.01 }}
                         className="h-full bg-white/80 backdrop-blur-sm rounded-[2.5rem] p-0 overflow-hidden shadow-[0_20px_50px_-25px_rgba(0,0,0,0.05)] hover:shadow-[0_30px_70px_-20px_rgba(76,29,149,0.12)] border border-white/40 flex flex-col relative group cursor-pointer transition-all duration-500"

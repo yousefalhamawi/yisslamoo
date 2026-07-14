@@ -1,6 +1,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { getStableListKey } from '../../utils/stableListKey';
 import { useCategories } from '../../hooks/useCategories';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -135,9 +136,9 @@ const CategoryCircles: React.FC = () => {
             className={`flex gap-3 md:gap-4 overflow-x-auto scrollbar-none py-2 px-1 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none`}
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
-            {allCategories.map((category) => (
+            {allCategories.map((category, index) => (
               <Link
-                key={category.slug}
+                key={getStableListKey(category.id, category.slug, 'category', index)}
                 to={category.slug === 'all' ? '/shop' : `/category/${category.slug}`}
                 onClick={(e) => isDragging && e.preventDefault()}
                 className="flex-shrink-0 flex flex-col items-center gap-2.5 group pointer-events-auto"

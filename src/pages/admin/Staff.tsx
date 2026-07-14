@@ -284,7 +284,7 @@ const StaffPage: React.FC = () => {
                 <th className="px-8 py-5 text-xs font-black text-slate-500 uppercase tracking-wider">العضو</th>
                 <th className="px-8 py-5 text-xs font-black text-slate-500 uppercase tracking-wider">الرتبة</th>
                 <th className="px-8 py-5 text-xs font-black text-slate-500 uppercase tracking-wider">آخر دخول</th>
-                <th className="px-8 py-5 text-xs font-black text-slate-500 uppercase tracking-wider text-left">الإجراءات</th>
+                <th className="px-8 py-5 text-xs font-black text-slate-500 uppercase tracking-wider text-right">الإجراءات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -332,8 +332,8 @@ const StaffPage: React.FC = () => {
                         <span>{new Date(member.lastLogin).toLocaleDateString('ar-SA')}</span>
                       </div>
                     </td>
-                    <td className="px-8 py-5 text-left">
-                      <button 
+                    <td className="px-8 py-5 text-right">
+                      <button
                         onClick={() => handleDelete(member.id!)}
                         disabled={isDeleting === member.id}
                         className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all disabled:opacity-50"

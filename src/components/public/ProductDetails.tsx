@@ -9,6 +9,7 @@ import { PRODUCTS } from '../../mockData/initialData';
 import ProductCard from './ProductCard';
 import { Link } from 'react-router-dom';
 import { getColorName, getColorHex } from '../../utils/colorUtils';
+import { usePricedProduct } from '../../hooks/usePricedProduct';
 import { ChevronLeft, ChevronRight, Share2, Heart, ShoppingBag, Gift, PenTool, MessageSquare, Truck, RotateCcw, ShieldCheck, Star, ZoomIn, X as CloseIcon } from 'lucide-react';
 
 interface ProductDetailsProps {
@@ -34,6 +35,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
   onToggleWishlist
 }) => {
   const images = product?.images && product.images.length > 0 ? product.images : [product?.image || ''];
+  const { displayPrice, displayOldPrice } = usePricedProduct(product);
   const [currentIndex, setCurrentIndex] = useState(0);
   const { addNotification } = useNotifications();
 
@@ -337,10 +339,10 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
             </div>
 
             <div className="flex items-baseline gap-4 mb-8">
-              <span className="text-3xl font-bold text-primaryDark">{(product.price || 0).toLocaleString()}</span>
+              <span className="text-3xl font-bold text-primaryDark">{displayPrice.toLocaleString()}</span>
               <span className="text-sm font-bold text-accent uppercase tracking-widest">ليرة سورية</span>
-              {product.discountPrice && (
-                <span className="text-lg text-gray-300 line-through">{(product.discountPrice + product.price).toLocaleString()}</span>
+              {displayOldPrice && (
+                <span className="text-lg text-gray-300 line-through">{displayOldPrice.toLocaleString()}</span>
               )}
             </div>
 

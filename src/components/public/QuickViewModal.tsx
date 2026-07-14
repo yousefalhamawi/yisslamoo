@@ -3,6 +3,8 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Product } from '../../types/index';
 import { ShoppingBag, X, Zap, Gift, ArrowLeft, Star, ZoomIn, X as CloseIcon } from 'lucide-react';
+import { computeDisplayPrice } from '../../utils/pricingEngine';
+import { useSharedStore } from '../../store/useSharedStore';
 
 interface QuickViewModalProps {
   product: Product | null;
@@ -14,6 +16,8 @@ interface QuickViewModalProps {
 
 const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen, onClose, onAddToCart, onViewDetails }) => {
   const [isZoomOpen, setIsZoomOpen] = React.useState(false);
+  const exchangeRate = useSharedStore((state) => state.exchangeRate);
+  const displayPrice = product ? computeDisplayPrice(product, exchangeRate) : 0;
   
   if (!product) return null;
 
@@ -155,7 +159,7 @@ const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen, onClos
                 
                 <div className="flex items-center gap-3 justify-end mb-8">
                   <span className="text-4xl font-bold text-primaryDark">
-                    {product.price.toLocaleString()}
+                    {displayPrice.toLocaleString()}
                   </span>
                   <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">ليرة سورية</span>
                 </div>
