@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit2, Trash2, X, Image as ImageIcon, Upload } from 'lucide-react';
 import { useSharedStore } from '../../store/useSharedStore';
 import { HeroSlide } from '../../types/admin';
-import { toast } from 'react-hot-toast';
+import { toast } from '../../utils/toast';
 import { uploadService } from '../../services/uploadService';
 
 const SliderPage: React.FC = () => {

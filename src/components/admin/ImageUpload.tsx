@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { ImagePlus, Upload, Trash2, X, Loader2 } from 'lucide-react';
 import { cn } from '../../utils/cn';
-import { toast } from 'react-hot-toast';
+import { toast } from '../../utils/toast';
 
 interface ImageUploadProps {
   value: string | string[];

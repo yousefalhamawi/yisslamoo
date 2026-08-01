@@ -12,7 +12,7 @@ import { useProfile } from '../../hooks/useProfile';
 import { AdminProfile } from '../../services/profileService';
 import { ImageUpload } from '../../components/admin/ImageUpload';
 import { uploadService } from '../../services/uploadService';
-import { toast } from 'react-hot-toast';
+import { toast } from '../../utils/toast';
 
 const ProfilePage: React.FC = () => {
   const { profile, loading, updateProfile } = useProfile();
@@ -131,8 +131,8 @@ const ProfilePage: React.FC = () => {
                     <input 
                       type="email" 
                       value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pr-4 pl-12 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                      readOnly
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pr-4 pl-12 text-sm opacity-60 cursor-not-allowed"
                       dir="ltr"
                     />
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />

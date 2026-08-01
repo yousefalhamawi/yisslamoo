@@ -23,7 +23,7 @@ export const useProfile = () => {
 
   const updateProfile = async (newProfile: AdminProfile) => {
     setLoading(true);
-    const updated = await profileService.updateProfile(newProfile);
+    const updated = await profileService.updateOwnProfile(newProfile);
     setProfile(updated);
     setLoading(false);
   };

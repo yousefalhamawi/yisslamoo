@@ -16,6 +16,21 @@
   --color-textMuted:   #8B8B8B;
 }
 
+/*
+  ارتفاع العناصر الثابتة أعلى الشاشة (الشريط العلوي + الهيدر).
+  الهيدر أطول على الجوال لأن عناصره تلتفّ على سطرين، لذلك القيمة أكبر هناك.
+  أي صفحة تبدأ بمحتوى تحت الهيدر يجب أن تستخدم .page-offset بدل قيمة pt يدوية.
+*/
+:root {
+  --chrome-height: 144px;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --chrome-height: 128px;
+  }
+}
+
 body {
   font-family: 'Zain', sans-serif;
 }
@@ -25,6 +40,14 @@ body {
 }
 
 @layer utilities {
+  /* تُبعد أول محتوى في الصفحة عن الهيدر الثابت — مع مسافة تنفّس إضافية */
+  .page-offset {
+    padding-top: calc(var(--chrome-height) + 1.5rem);
+  }
+  /* للصفحات ذات العنوان الكبير التي تحتاج فراغاً أوسع */
+  .page-offset-lg {
+    padding-top: calc(var(--chrome-height) + 3rem);
+  }
   .writing-mode-vertical-rl {
     writing-mode: vertical-rl;
   }

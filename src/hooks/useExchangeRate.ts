@@ -2,7 +2,7 @@ import { useSharedStore } from '../store/useSharedStore';
 import { exchangeRateService } from '../services/exchangeRateService';
 import { ExchangeRateLog } from '../services/exchangeRateService';
 import { isValidExchangeRate } from '../utils/pricingEngine';
-import { toast } from 'react-hot-toast';
+import { toast } from '../utils/toast';
 import { useState, useCallback } from 'react';
 import { supabase } from '../supabase';
 

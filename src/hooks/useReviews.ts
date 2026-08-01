@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
+import { toast } from '../utils/toast';
 import { Review } from '../types/admin';
 import { reviewService } from '../services/reviewService';
 import { checkSupabaseConfig } from '../supabase';
@@ -23,7 +23,7 @@ export const useReviews = () => {
       setReviews(data);
     } catch (err) {
       setError('Failed to fetch reviews');
-      toast.error('فشل في تحميل التقييمات');
+      toast.loadError();
     } finally {
       setLoading(false);
     }

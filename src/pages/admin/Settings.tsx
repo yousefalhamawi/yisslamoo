@@ -18,7 +18,7 @@ import { useSettings } from '../../hooks/useSettings';
 import { StoreSettings } from '../../services/settingsService';
 import { ImageUpload } from '../../components/admin/ImageUpload';
 import { uploadService } from '../../services/uploadService';
-import { toast } from 'react-hot-toast';
+import { toast } from '../../utils/toast';
 import ExchangeRateWidget from '../../components/admin/ExchangeRateWidget';
 
 const SettingsPage: React.FC = () => {

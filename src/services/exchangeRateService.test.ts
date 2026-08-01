@@ -7,7 +7,7 @@ vi.mock('../supabase', () => ({
   },
 }));
 
-vi.mock('react-hot-toast', () => ({
+vi.mock('../utils/toast', () => ({
   toast: {
     success: vi.fn(),
   },

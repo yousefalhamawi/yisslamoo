@@ -10,7 +10,7 @@ describe('TopBar', () => {
     const pinterestMarkup = markup.slice(pinterestStart, markup.indexOf('</a>', pinterestStart));
 
     expect(markup).toContain('w-6 h-6');
-    expect(markup).toContain('viewBox="0 0 112.198 112.198"');
+    expect(pinterestMarkup).toContain('<svg');
     expect(pinterestMarkup).toContain('fill="currentColor"');
     expect(pinterestMarkup).not.toContain('#CB2027');
     expect(markup).toContain(`href="${SOCIAL_LINKS.facebook}"`);

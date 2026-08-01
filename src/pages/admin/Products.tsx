@@ -21,7 +21,7 @@ import {
   PenLine,
   DollarSign
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from '../../utils/toast';
 import { supabase, checkSupabaseConfig } from '../../supabase';
 import { Product } from '../../types/index';
 import { useProducts } from '../../hooks/useProducts';

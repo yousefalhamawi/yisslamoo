@@ -8,9 +8,18 @@ import { getColorName, getColorHex } from '../../utils/colorUtils';
 import { useCoupons } from '../../hooks/useCoupons';
 import { addressService } from '../../services/addressService';
 import { customerService } from '../../services/customerService';
-import { toast } from 'react-hot-toast';
+import { toast } from '../../utils/toast';
 import { computeDisplayPrice } from '../../utils/pricingEngine';
 import { useSharedStore } from '../../store/useSharedStore';
+import {
+  FORM_TITLE,
+  FORM_LABEL,
+  FORM_FIELDS,
+  FORM_ERROR,
+  FORM_SUBMIT,
+  formInput,
+  formTextarea
+} from '../../constants/formStyles';
 
 interface CheckoutPageProps {
   items: Product[];
@@ -403,33 +412,70 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
   };
 
   return (
-    <div className="bg-[#FAFBFC] min-h-screen pt-32 pb-24">
+    <div className="bg-[#FAFBFC] min-h-screen page-offset pb-24">
       <div className="container mx-auto px-6 max-w-7xl">
         
-        {/* Header Breadcrumbs */}
-        <div className="flex items-center justify-between mb-16">
-          <button onClick={onBack} className="flex items-center gap-2 text-gray-400 hover:text-primary transition-colors">
-            <svg className="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+        {/* رأس الصفحة: زر العودة ثم مؤشّر الخطوات */}
+        <div className="mb-10 md:mb-14">
+          <button
+            onClick={onBack}
+            className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-primary transition-colors mb-6"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
+            </svg>
             <span className="font-bold">العودة</span>
           </button>
 
-          <div className="flex items-center gap-4">
-            {steps.map((s, i) => (
-              <React.Fragment key={`checkout-step-${s.id}-${i}`}>
-                <div className="flex flex-col items-center gap-2">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-all ${step >= s.id ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white border border-gray-100 text-gray-300'}`}>
-                    {s.id}
-                  </div>
-                  <span className={`text-[10px] font-black uppercase tracking-widest ${step >= s.id ? 'text-primary' : 'text-gray-300'}`}>{s.name}</span>
-                </div>
-                {i < steps.length - 1 && (
-                  <div className={`w-12 h-0.5 mb-4 ${step > s.id ? 'bg-primary' : 'bg-gray-200'}`} />
-                )}
-              </React.Fragment>
-            ))}
-          </div>
+          {/* خطوط الوصل مرنة (flex-1) فتتقلّص مع عرض الشاشة بدل أن تتجاوزها */}
+          <ol className="flex items-start w-full max-w-lg mx-auto">
+            {steps.map((s, i) => {
+              const isDone = step > s.id;
+              const isCurrent = step === s.id;
+              const isReached = step >= s.id;
 
-          <div className="w-20" /> {/* Spacer for symmetry */}
+              return (
+                <React.Fragment key={`checkout-step-${s.id}-${i}`}>
+                  <li
+                    className="flex flex-col items-center gap-2 shrink-0 w-16"
+                    aria-current={isCurrent ? 'step' : undefined}
+                  >
+                    <div
+                      className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
+                        isReached
+                          ? 'bg-primary text-white shadow-md shadow-primary/25'
+                          : 'bg-white border border-gray-200 text-gray-300'
+                      }`}
+                    >
+                      {isDone ? (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        s.id
+                      )}
+                    </div>
+                    <span
+                      className={`text-[11px] font-bold text-center leading-tight ${
+                        isReached ? 'text-primary' : 'text-gray-300'
+                      }`}
+                    >
+                      {s.name}
+                    </span>
+                  </li>
+
+                  {i < steps.length - 1 && (
+                    <li
+                      aria-hidden="true"
+                      className={`flex-1 h-0.5 mt-[18px] rounded-full transition-colors ${
+                        isDone ? 'bg-primary' : 'bg-gray-200'
+                      }`}
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </ol>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
@@ -445,35 +491,35 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
                   exit={{ opacity: 0, x: -20 }}
                   className="bg-white p-10 rounded-[3rem] shadow-sm border border-gray-100"
                 >
-                  <h2 className="text-3xl font-black mb-10 text-textMain text-right">معلومات التواصل</h2>
-                  <div className="space-y-8">
-                    <div className="space-y-2">
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">البريد الإلكتروني</label>
-                      <input 
-                        type="email" 
+                  <h2 className={FORM_TITLE}>معلومات التواصل</h2>
+                  <div className={FORM_FIELDS}>
+                    <div>
+                      <label className={FORM_LABEL}>البريد الإلكتروني</label>
+                      <input
+                        type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
                         placeholder="example@yaslamo.sa"
-                        className={`w-full px-6 py-5 rounded-2xl bg-gray-50 border ${errors.email ? 'border-red-500' : 'border-gray-100'} focus:outline-none focus:border-primary focus:bg-white transition-all text-right`} 
+                        className={formInput(!!errors.email)}
                       />
-                      {errors.email && <p className="text-[10px] text-red-500 font-bold mr-2 mt-1">{errors.email}</p>}
+                      {errors.email && <p className={FORM_ERROR}>{errors.email}</p>}
                     </div>
-                    <div className="space-y-2">
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">رقم الهاتف</label>
-                      <input 
-                        type="tel" 
+                    <div>
+                      <label className={FORM_LABEL}>رقم الهاتف</label>
+                      <input
+                        type="tel"
                         name="phone"
                         value={formData.phone}
                         onChange={handleInputChange}
                         placeholder="+966 5x xxx xxxx"
-                        className={`w-full px-6 py-5 rounded-2xl bg-gray-50 border ${errors.phone ? 'border-red-500' : 'border-gray-100'} focus:outline-none focus:border-primary focus:bg-white transition-all text-right`} 
+                        className={formInput(!!errors.phone)}
                       />
-                      {errors.phone && <p className="text-[10px] text-red-500 font-bold mr-2 mt-1">{errors.phone}</p>}
+                      {errors.phone && <p className={FORM_ERROR}>{errors.phone}</p>}
                     </div>
-                    <button 
+                    <button
                       onClick={nextStep}
-                      className="w-full py-6 bg-primary text-white font-black rounded-2xl shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all text-xl mt-4"
+                      className={FORM_SUBMIT}
                     >
                       متابعة للشحن
                     </button>
@@ -594,81 +640,81 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
                       
                       <div className="space-y-6">
                         <div className="space-y-2">
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">الاسم الكامل</label>
+                          <label className={FORM_LABEL}>الاسم الكامل</label>
                           <input 
                             type="text" 
                             value={newAddress.full_name}
                             onChange={(e) => setNewAddress({ ...newAddress, full_name: e.target.value })}
                             placeholder="أدخل اسم المستلم"
-                            className="w-full px-8 py-6 rounded-[2rem] bg-white border border-gray-100 focus:outline-none focus:border-primary transition-all text-right font-bold" 
+                            className={formInput()} 
                           />
                         </div>
 
                         <div className="grid grid-cols-2 gap-6">
                           <div className="space-y-2">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">رقم الهاتف</label>
+                            <label className={FORM_LABEL}>رقم الهاتف</label>
                             <input 
                               type="tel" 
                               value={newAddress.phone}
                               onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
                               placeholder="05xxxxxxxx"
-                              className="w-full px-8 py-6 rounded-[2rem] bg-white border border-gray-100 focus:outline-none focus:border-primary transition-all text-right font-bold" 
+                              className={formInput()} 
                             />
                           </div>
                           <div className="space-y-2">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">الدولة</label>
+                            <label className={FORM_LABEL}>الدولة</label>
                             <input 
                               type="text" 
                               value={newAddress.country}
                               onChange={(e) => setNewAddress({ ...newAddress, country: e.target.value })}
                               placeholder="سوريا, دمشق"
-                              className="w-full px-8 py-6 rounded-[2rem] bg-white border border-gray-100 focus:outline-none focus:border-primary transition-all text-right font-bold" 
+                              className={formInput()} 
                             />
                           </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-6">
                           <div className="space-y-2">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">المدينة</label>
+                            <label className={FORM_LABEL}>المدينة</label>
                             <input 
                               type="text" 
                               value={newAddress.city}
                               onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
                               placeholder="مثلاً: الرياض"
-                              className="w-full px-8 py-6 rounded-[2rem] bg-white border border-gray-100 focus:outline-none focus:border-primary transition-all text-right font-bold" 
+                              className={formInput()} 
                             />
                           </div>
                           <div className="space-y-2">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">الشارع</label>
+                            <label className={FORM_LABEL}>الشارع</label>
                             <input 
                               type="text" 
                               value={newAddress.street}
                               onChange={(e) => setNewAddress({ ...newAddress, street: e.target.value })}
                               placeholder="اسم الشارع"
-                              className="w-full px-8 py-6 rounded-[2rem] bg-white border border-gray-100 focus:outline-none focus:border-primary transition-all text-right font-bold" 
+                              className={formInput()} 
                             />
                           </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-6">
                           <div className="space-y-2">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">المبنى / الشقة</label>
+                            <label className={FORM_LABEL}>المبنى / الشقة</label>
                             <input 
                               type="text" 
                               value={newAddress.building}
                               onChange={(e) => setNewAddress({ ...newAddress, building: e.target.value })}
                               placeholder="رقم المبنى أو الشقة"
-                              className="w-full px-8 py-6 rounded-[2rem] bg-white border border-gray-100 focus:outline-none focus:border-primary transition-all text-right font-bold" 
+                              className={formInput()} 
                             />
                           </div>
                           <div className="space-y-2">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">ملاحظات إضافية</label>
+                            <label className={FORM_LABEL}>ملاحظات إضافية</label>
                             <input 
                               type="text" 
                               value={newAddress.notes}
                               onChange={(e) => setNewAddress({ ...newAddress, notes: e.target.value })}
                               placeholder="مثلاً: بجانب المسجد"
-                              className="w-full px-8 py-6 rounded-[2rem] bg-white border border-gray-100 focus:outline-none focus:border-primary transition-all text-right font-bold" 
+                              className={formInput()} 
                             />
                           </div>
                         </div>
@@ -708,14 +754,14 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
                         </button>
                       )}
                       <div className="space-y-2">
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">الاسم الكامل</label>
+                        <label className={FORM_LABEL}>الاسم الكامل</label>
                         <input 
                           type="text" 
                           name="fullName"
                           value={formData.fullName}
                           onChange={handleInputChange}
                           placeholder="أدخل اسم المستلم"
-                          className={`w-full px-8 py-6 rounded-[2rem] bg-gray-50 border ${errors.fullName ? 'border-red-500' : 'border-gray-100'} focus:outline-none focus:border-primary focus:bg-white transition-all text-right font-bold`} 
+                          className={formInput(!!errors.fullName)} 
                         />
                         {errors.fullName && <p className="text-[10px] text-red-500 font-bold mr-2 mt-1">{errors.fullName}</p>}
                       </div>
@@ -723,34 +769,34 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
                         <>
                           <div className="grid grid-cols-2 gap-6">
                             <div className="space-y-2">
-                              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">المدينة</label>
+                              <label className={FORM_LABEL}>المدينة</label>
                               <input 
                                 type="text" 
                                 name="city"
                                 value={formData.city}
                                 onChange={handleInputChange}
-                                className="w-full px-8 py-6 rounded-[2rem] bg-gray-50 border border-gray-100 focus:outline-none focus:border-primary focus:bg-white transition-all text-right font-bold" 
+                                className={formInput()} 
                               />
                             </div>
                             <div className="space-y-2">
-                              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">الحي</label>
+                              <label className={FORM_LABEL}>الحي</label>
                               <input 
                                 type="text" 
                                 name="district"
                                 value={formData.district}
                                 onChange={handleInputChange}
-                                className="w-full px-8 py-6 rounded-[2rem] bg-gray-50 border border-gray-100 focus:outline-none focus:border-primary focus:bg-white transition-all text-right font-bold" 
+                                className={formInput()} 
                               />
                             </div>
                           </div>
                           <div className="space-y-2">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">الشارع وتفاصيل العنوان</label>
+                            <label className={FORM_LABEL}>الشارع وتفاصيل العنوان</label>
                             <input 
                               type="text" 
                               name="street"
                               value={formData.street}
                               onChange={handleInputChange}
-                              className="w-full px-8 py-6 rounded-[2rem] bg-gray-50 border border-gray-100 focus:outline-none focus:border-primary focus:bg-white transition-all text-right font-bold" 
+                              className={formInput()} 
                             />
                           </div>
                         </>
@@ -812,70 +858,70 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
                           
                           <div className="space-y-4">
                             <div className="space-y-1">
-                              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">الاسم الكامل</label>
+                              <label className={FORM_LABEL}>الاسم الكامل</label>
                               <input 
                                 type="text" 
                                 value={newAddress.full_name}
                                 onChange={(e) => setNewAddress({ ...newAddress, full_name: e.target.value })}
                                 placeholder="أدخل اسم المستلم"
-                                className="w-full px-6 py-4 rounded-2xl bg-white border border-gray-100 focus:outline-none focus:border-primary transition-all text-right font-bold text-sm" 
+                                className={formInput()} 
                               />
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                               <div className="space-y-1">
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">الدولة</label>
+                                <label className={FORM_LABEL}>الدولة</label>
                                 <input 
                                   type="text" 
                                   value={newAddress.country}
                                   onChange={(e) => setNewAddress({ ...newAddress, country: e.target.value })}
                                   placeholder="سوريا, دمشق"
-                                  className="w-full px-6 py-4 rounded-2xl bg-white border border-gray-100 focus:outline-none focus:border-primary transition-all text-right font-bold text-sm" 
+                                  className={formInput()} 
                                 />
                               </div>
                               <div className="space-y-1">
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">رقم الهاتف</label>
+                                <label className={FORM_LABEL}>رقم الهاتف</label>
                                 <input 
                                   type="tel" 
                                   value={newAddress.phone}
                                   onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
                                   placeholder="05xxxxxxxx"
-                                  className="w-full px-6 py-4 rounded-2xl bg-white border border-gray-100 focus:outline-none focus:border-primary transition-all text-right font-bold text-sm" 
+                                  className={formInput()} 
                                 />
                               </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                               <div className="space-y-1">
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">المدينة</label>
+                                <label className={FORM_LABEL}>المدينة</label>
                                 <input 
                                   type="text" 
                                   value={newAddress.city}
                                   onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
                                   placeholder="مثلاً: الرياض"
-                                  className="w-full px-6 py-4 rounded-2xl bg-white border border-gray-100 focus:outline-none focus:border-primary transition-all text-right font-bold text-sm" 
+                                  className={formInput()} 
                                 />
                               </div>
                               <div className="space-y-1">
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">المبنى / الشقة</label>
+                                <label className={FORM_LABEL}>المبنى / الشقة</label>
                                 <input 
                                   type="text" 
                                   value={newAddress.building}
                                   onChange={(e) => setNewAddress({ ...newAddress, building: e.target.value })}
                                   placeholder="مثلاً: مبنى ٥، شقة ١٠"
-                                  className="w-full px-6 py-4 rounded-2xl bg-white border border-gray-100 focus:outline-none focus:border-primary transition-all text-right font-bold text-sm" 
+                                  className={formInput()} 
                                 />
                               </div>
                             </div>
 
                             <div className="space-y-1">
-                              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">الشارع وتفاصيل العنوان</label>
+                              <label className={FORM_LABEL}>الشارع وتفاصيل العنوان</label>
                               <input 
                                 type="text" 
                                 value={newAddress.street}
                                 onChange={(e) => setNewAddress({ ...newAddress, street: e.target.value })}
                                 placeholder="اسم الشارع، رقم المبنى..."
-                                className="w-full px-6 py-4 rounded-2xl bg-white border border-gray-100 focus:outline-none focus:border-primary transition-all text-right font-bold text-sm" 
+                                className={formInput()} 
                               />
                             </div>
                           </div>
@@ -938,7 +984,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
 
                   <div className="space-y-8">
                       <div className="space-y-2">
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">أسماء المُهدى إليهم (اختياري)</label>
+                        <label className={FORM_LABEL}>أسماء المُهدى إليهم (اختياري)</label>
                         <input 
                           type="text" 
                           name="recipientNames"
@@ -952,12 +998,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
                             }));
                           }}
                           placeholder="مثلاً: محمد، سارة..."
-                          className="w-full px-6 py-5 rounded-2xl bg-gray-50 border border-gray-100 focus:outline-none focus:border-primary focus:bg-white transition-all text-right" 
+                          className="${formInput()}" 
                         />
                       </div>
 
                     <div className="space-y-4">
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">طريقة الدفع</label>
+                      <label className={FORM_LABEL}>طريقة الدفع</label>
                       <div className="grid grid-cols-1 gap-4">
                         {[
                           { id: 'card', name: 'بطاقة ائتمانية / مدى', icon: '💳' },

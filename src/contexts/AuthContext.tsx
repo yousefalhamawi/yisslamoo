@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase, checkSupabaseConfig } from '../supabase';
 import { User } from '@supabase/supabase-js';
+import { createAuthSessionGuard } from './authSessionGuard';
 
 interface AuthContextType {
   user: User | null;
@@ -26,36 +27,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    // Get initial session
-    supabase.auth.getSession()
-      .then(({ data: { session }, error }) => {
-        if (error) {
-          if (error.message.includes('Refresh Token Not Found') || error.message.includes('Invalid Refresh Token')) {
-            supabase.auth.signOut();
-          }
-          console.error('Supabase session error:', error);
-        }
-        setUser(session?.user ?? null);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Supabase session error:', err);
-        setLoading(false);
-      });
+    let isActive = true;
+    const sessionGuard = createAuthSessionGuard();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
-        setUser(session?.user ?? null);
-      } else if (session) {
-        setUser(session.user);
-      } else {
-        setUser(null);
-      }
+      if (!sessionGuard.recordAuthEvent(event)) return;
+      if (!isActive) return;
+
+      setUser(session?.user ?? null);
       setLoading(false);
     });
 
+    const loadInitialSession = async () => {
+      const requestVersion = sessionGuard.captureVersion();
+
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+
+        // A newer auth event (for example, SIGNED_IN) owns the state. Never let
+        // this older request overwrite it with a stale session.
+        if (!isActive || !sessionGuard.canApplyInitialSession(requestVersion)) return;
+
+        if (error) {
+          console.error('Supabase session error:', error);
+        }
+
+        setUser(session?.user ?? null);
+      } catch (err) {
+        if (isActive && sessionGuard.canApplyInitialSession(requestVersion)) {
+          console.error('Supabase session error:', err);
+        }
+      } finally {
+        if (isActive && sessionGuard.canApplyInitialSession(requestVersion)) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadInitialSession();
+
     return () => {
+      isActive = false;
       subscription.unsubscribe();
     };
   }, []);

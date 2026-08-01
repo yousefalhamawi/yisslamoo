@@ -1,214 +1,152 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
+import { Collection } from '../../types/admin';
 import { useCollections } from '../../hooks/useCollections';
+
+/** أقصى عدد مجموعات تُعرض في مخطط البنتو */
+const FEATURED_COLLECTIONS_LIMIT = 3;
+
+/** يحوّل رقم الترتيب إلى أرقام عربية بخانتين — ٠١، ٠٢، ٠٣ */
+const toArabicIndex = (index: number): string =>
+  String(index + 1)
+    .padStart(2, '0')
+    .replace(/\d/g, digit => '٠١٢٣٤٥٦٧٨٩'[Number(digit)]);
+
+interface BentoTileProps {
+  collection: Collection;
+  index: number;
+  /** البلاطة الكبيرة تأخذ عمودين وصفّين وخطاً أعرض */
+  isFeature: boolean;
+  reduceMotion: boolean;
+}
+
+const BentoTile: React.FC<BentoTileProps> = ({ collection, index, isFeature, reduceMotion }) => (
+  <motion.div
+    initial={reduceMotion ? false : { opacity: 0, scale: 0.97 }}
+    whileInView={{ opacity: 1, scale: 1 }}
+    viewport={{ once: true, margin: '-50px' }}
+    transition={{ duration: 0.45, delay: index * 0.08 }}
+    className={isFeature ? 'md:row-span-2 h-56 md:h-auto' : 'h-40 md:h-auto'}
+  >
+    <Link
+      to={`/collection/${collection.id}`}
+      className="group relative block w-full h-full rounded-[1.5rem] overflow-hidden ring-1 ring-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+    >
+      <img
+        src={collection.image}
+        alt={collection.name}
+        loading="lazy"
+        className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-[1.08] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+      />
+
+      <div className="absolute inset-0 bg-gradient-to-t from-primaryDark/95 via-primaryDark/30 to-transparent transition-opacity duration-500 group-hover:from-primaryDark motion-reduce:transition-none" />
+
+      <span
+        aria-hidden="true"
+        className={`absolute top-4 right-4 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center font-bold text-accent ${
+          isFeature ? 'w-11 h-11 text-sm' : 'w-8 h-8 text-[10px]'
+        }`}
+      >
+        {toArabicIndex(index)}
+      </span>
+
+      <div className={`absolute inset-x-0 bottom-0 text-right ${isFeature ? 'p-6' : 'p-4'}`}>
+        <h3
+          className={`font-bold text-white leading-normal pb-0.5 ${
+            isFeature ? 'text-2xl md:text-3xl' : 'text-base'
+          }`}
+        >
+          {collection.name}
+        </h3>
+
+        {isFeature && collection.description && (
+          <p className="text-xs text-white/70 leading-relaxed line-clamp-2 mt-1.5 max-w-sm">
+            {collection.description}
+          </p>
+        )}
+
+        <span
+          className={`inline-flex items-center gap-2 font-bold text-accent uppercase tracking-[0.2em] ${
+            isFeature ? 'mt-4 text-[10px]' : 'mt-2 text-[9px]'
+          }`}
+        >
+          تصفح المجموعة
+          <ArrowLeft className="w-3.5 h-3.5 transition-transform duration-500 group-hover:-translate-x-1 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0" />
+        </span>
+      </div>
+    </Link>
+  </motion.div>
+);
 
 const CategoriesSection: React.FC = () => {
   const { collections, loading } = useCollections();
+  const reduceMotion = !!useReducedMotion();
 
   const activeCollections = collections.filter(c => c.status === 'active');
-
-  // Take the first 3 collections for the featured layout
-  const mainCollection = activeCollections[0];
-  const secondCollection = activeCollections[1];
-  const thirdCollection = activeCollections[2];
+  const featuredCollections = activeCollections.slice(0, FEATURED_COLLECTIONS_LIMIT);
 
   if (loading && collections.length === 0) {
     return (
-      <div className="py-24 flex justify-center items-center">
-        <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="py-20 flex justify-center items-center">
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
-  // If no collections, optionally show something or return null
   if (activeCollections.length === 0) {
     return null;
   }
 
   return (
-    <section id="categories-section" className="py-48 bg-white overflow-hidden">
-      <div className="container mx-auto px-6">
-        <div className="flex flex-col md:flex-row items-end justify-between mb-32 gap-12 relative">
-          <div className="text-right relative z-10">
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="flex items-center gap-4 mb-6"
-            >
-              <span className="text-primary font-bold uppercase tracking-[0.4em] text-[9px]">العوالم الحصرية</span>
-              <div className="w-10 h-1 bg-accent rounded-full"></div>
-            </motion.div>
-
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="text-5xl md:text-6xl font-bold text-textMain tracking-tighter leading-none"
-            >
-              اختر عالمك <br />
-              <span className="text-primary relative">
-                الخاص
-                <svg className="absolute -bottom-3 left-0 w-full h-3 text-accent/30" viewBox="0 0 100 10" preserveAspectRatio="none">
-                  <path d="M0 5 Q 50 0 100 5" fill="none" stroke="currentColor" strokeWidth="3" />
-                </svg>
-              </span>
-            </motion.h2>
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="max-w-md text-right"
-          >
-            <p className="text-lg text-gray-400 font-normal leading-relaxed mb-8">
-              مجموعات منسقة بعناية لتعكس شخصيتك وتخلد ذكرياتك، من القطع الكلاسيكية الخالدة إلى الابتكارات العصرية الجريئة.
-            </p>
-            <div className="flex justify-end gap-10">
-              <div className="text-right">
-                <p className="text-xl font-bold text-textMain">+١٥٠</p>
-                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">تصميم حصري</p>
-              </div>
-              <div className="w-px h-12 bg-gray-100"></div>
-              <div className="text-right">
-                <p className="text-xl font-bold text-textMain">٢٤</p>
-                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">مجموعة عالمية</p>
-              </div>
-            </div>
-          </motion.div>
-
-          <div className="absolute -top-20 -left-20 text-[15rem] font-black text-gray-50 select-none pointer-events-none -z-10">
-            نخبة
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 h-auto md:h-[900px]">
-          {mainCollection && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -10 }}
-              className="md:col-span-8 relative rounded-[4rem] overflow-hidden group cursor-pointer shadow-2xl shadow-black/5"
-            >
-              <Link to={`/collection/${mainCollection.id}`} className="block w-full h-full">
-                <img
-                  src={mainCollection.image}
-                  className="w-full h-full object-cover transition-transform duration-[2s] ease-out group-hover:scale-110"
-                  alt={mainCollection.name}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-primaryDark/80 via-primaryDark/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-700" />
-
-                <div className="absolute inset-0 p-16 flex flex-col justify-end items-end text-right">
-                  <motion.div className="overflow-hidden">
-                    <span className="text-accent font-bold text-[10px] uppercase tracking-[0.4em] mb-4 block transform translate-y-10 group-hover:translate-y-0 transition-transform duration-700">الإصدار المخملي</span>
-                    <h3 className="text-5xl md:text-6xl font-bold text-white mb-6 transform translate-y-10 group-hover:translate-y-0 transition-transform duration-700 delay-75">{mainCollection.name}</h3>
-                    <p className="text-white/60 text-sm max-w-sm mb-10 transform translate-y-10 group-hover:translate-y-0 transition-transform duration-700 delay-150">{mainCollection.description}</p>
-
-                    <div className="flex items-center gap-6 transform translate-y-10 group-hover:translate-y-0 transition-transform duration-700 delay-200">
-                      <span className="text-white font-bold text-xs border-b-2 border-accent pb-1">تصفح المجموعة</span>
-                      <div className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white group-hover:bg-accent group-hover:text-primaryDark group-hover:border-accent transition-all duration-500">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                      </div>
-                    </div>
-                  </motion.div>
-                </div>
-              </Link>
-
-              <div className="absolute top-12 left-12 w-20 h-20 rounded-full border border-white/10 backdrop-blur-md flex items-center justify-center text-white font-black text-2xl">
-                ٠١
-              </div>
-            </motion.div>
-          )}
-
-          <div className="md:col-span-4 flex flex-col gap-10">
-            {secondCollection && (
-              <motion.div
-                initial={{ opacity: 0, x: 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -10 }}
-                className="flex-1 relative rounded-[4rem] overflow-hidden group cursor-pointer shadow-2xl shadow-black/5"
-              >
-                <Link to={`/collection/${secondCollection.id}`} className="block w-full h-full">
-                  <img
-                    src={secondCollection.image}
-                    className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-110"
-                    alt={secondCollection.name}
-                  />
-                  <div className="absolute inset-0 bg-primaryDark/40 group-hover:bg-primaryDark/60 transition-colors duration-700" />
-
-                  <div className="absolute inset-0 p-12 flex flex-col justify-end items-end text-right">
-                    <span className="text-accent font-bold text-[9px] uppercase tracking-[0.3em] mb-3">للشخصية القيادية</span>
-                    <h3 className="text-3xl font-bold text-white mb-6">{secondCollection.name}</h3>
-                    <div className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white group-hover:bg-white group-hover:text-primaryDark transition-all duration-500">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
-            )}
-
-            {thirdCollection && (
-              <motion.div
-                initial={{ opacity: 0, x: 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.1 }}
-                whileHover={{ y: -10 }}
-                className="flex-1 relative rounded-[4rem] overflow-hidden group cursor-pointer shadow-2xl shadow-black/5"
-              >
-                <Link to={`/collection/${thirdCollection.id}`} className="block w-full h-full">
-                  <img
-                    src={thirdCollection.image}
-                    className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-110"
-                    alt={thirdCollection.name}
-                  />
-                  <div className="absolute inset-0 bg-primary/30 mix-blend-multiply group-hover:opacity-40 transition-all" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-primaryDark/90 via-transparent to-transparent" />
-
-                  <div className="absolute inset-0 p-12 flex flex-col justify-end items-end text-right">
-                    <h3 className="text-2xl font-bold text-white mb-2">{thirdCollection.name}</h3>
-                    <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest">تغليف يدوي فاخر</p>
-                  </div>
-                </Link>
-              </motion.div>
-            )}
-          </div>
-        </div>
-
+    <section id="categories-section" className="py-16 md:py-20 bg-white overflow-hidden">
+      <div className="container mx-auto px-6 max-w-6xl">
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={reduceMotion ? false : { opacity: 0, y: 14 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mt-24 flex flex-col items-center"
+          transition={{ duration: 0.45 }}
+          className="flex flex-col md:flex-row md:items-end md:justify-between gap-5 mb-8"
         >
+          <div className="text-right">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-primary font-bold uppercase tracking-[0.35em] text-[9px]">
+                العوالم الحصرية
+              </span>
+              <div className="w-8 h-0.5 bg-accent rounded-full" />
+            </div>
+
+            <h2 className="text-4xl md:text-5xl font-black text-textMain tracking-tighter leading-none">
+              اختر عالمك <span className="text-primary">الخاص</span>
+            </h2>
+          </div>
+
           <Link
             to="/collections"
-            className="group flex flex-col items-center gap-6"
+            className="group inline-flex items-center gap-2 text-xs font-bold text-textMain hover:text-primary transition-colors shrink-0 motion-reduce:transition-none"
           >
-            <div className="relative">
-              <div className="w-24 h-24 rounded-full border border-gray-100 flex items-center justify-center group-hover:border-primary transition-colors duration-500">
-                <motion.div
-                  animate={{ y: [0, 5, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="text-primary"
-                >
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                  </svg>
-                </motion.div>
-              </div>
-              <div className="absolute -inset-4 border border-dashed border-primary/20 rounded-full animate-[spin_10s_linear_infinite] group-hover:border-primary/40 transition-colors" />
-            </div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.5em] text-gray-400 group-hover:text-primary transition-colors">تصفح كافة المواسم</span>
+            كل المجموعات
+            <span className="text-[10px] text-gray-300 font-normal">
+              ({activeCollections.length})
+            </span>
+            <ArrowLeft className="w-4 h-4 transition-transform duration-500 group-hover:-translate-x-1 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0" />
           </Link>
         </motion.div>
+
+        {/* مخطط البنتو: بلاطة كبيرة تأخذ صفّين، وبلاطتان أصغر بجانبها */}
+        <div className="grid grid-cols-1 md:grid-cols-[1.6fr_1fr] md:grid-rows-2 gap-4 md:h-[460px]">
+          {featuredCollections.map((collection, index) => (
+            <BentoTile
+              key={collection.id}
+              collection={collection}
+              index={index}
+              isFeature={index === 0}
+              reduceMotion={reduceMotion}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );

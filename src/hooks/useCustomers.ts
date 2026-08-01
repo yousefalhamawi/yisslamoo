@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSharedStore } from '../store/useSharedStore';
-import { toast } from 'react-hot-toast';
+import { toast } from '../utils/toast';
 import { Customer } from '../types/admin';
 import { customerService } from '../services/customerService';
 import { checkSupabaseConfig } from '../supabase';

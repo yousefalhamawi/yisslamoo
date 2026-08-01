@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ShieldCheck, FileText, RefreshCw, Sparkles, CheckCircle2, AlertTriangle, Eye, HelpCircle } from 'lucide-react';
+import { SOCIAL_LINKS } from '../../constants/socialLinks';
 
 const PoliciesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ const PoliciesPage: React.FC = () => {
   return (
     <div className="bg-[#FCFBFA] min-h-screen text-right pb-24">
       {/* Breadcrumb / Banner Section */}
-      <section className="relative pt-40 pb-24 bg-gradient-to-br from-[#2E1065] to-[#4C1D95] text-white overflow-hidden">
+      <section className="relative page-offset-lg pb-24 bg-gradient-to-br from-[#2E1065] to-[#4C1D95] text-white overflow-hidden">
         {/* Soft Decorative Background */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-[-50%] right-[-20%] w-[80%] h-[150%] bg-[#D4AF37]/10 rounded-full blur-[140px] rotate-12" />
@@ -116,7 +117,7 @@ const PoliciesPage: React.FC = () => {
                 فريق الدعم الفني وخدمة العملاء متواجد لمساعدتك والإجابة على أي استفسارات تتعلق بالشروط أو طلبك.
               </p>
               <a
-                href="https://wa.me/963930000000"
+                href={SOCIAL_LINKS.whatsapp}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 bg-[#D4AF37] text-primaryDark px-6 py-3 rounded-xl font-bold text-xs hover:scale-105 active:scale-95 transition-all shadow-lg shadow-[#D4AF37]/20"

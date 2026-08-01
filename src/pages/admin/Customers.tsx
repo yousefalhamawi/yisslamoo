@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { useCustomers } from '../../hooks/useCustomers';
 import { cn } from '../../utils/cn';
-import { toast } from 'react-hot-toast';
+import { toast } from '../../utils/toast';
 
 const CustomersPage: React.FC = () => {
   const { customers, loading, updateCustomer, deleteCustomer } = useCustomers();

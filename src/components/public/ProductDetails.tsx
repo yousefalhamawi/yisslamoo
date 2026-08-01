@@ -1,19 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'react-hot-toast';
+import { toast } from '../../utils/toast';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { Product } from '../../types/index';
 import { Review } from '../../types/admin';
 import { reviewService } from '../../services/reviewService';
-import { PRODUCTS } from '../../mockData/initialData';
 import ProductCard from './ProductCard';
 import { Link } from 'react-router-dom';
 import { getColorName, getColorHex } from '../../utils/colorUtils';
 import { usePricedProduct } from '../../hooks/usePricedProduct';
+import { getRelatedProducts } from '../../utils/relatedProducts';
 import { ChevronLeft, ChevronRight, Share2, Heart, ShoppingBag, Gift, PenTool, MessageSquare, Truck, RotateCcw, ShieldCheck, Star, ZoomIn, X as CloseIcon } from 'lucide-react';
 
 interface ProductDetailsProps {
   product: Product;
+  /** كل منتجات المتجر — تُستخدم لاقتراح منتجات من نفس الفئة */
+  allProducts: Product[];
   onAddToCart: (p: Product) => void;
   onBuyNow: (p: Product) => void;
   onBack: () => void;
@@ -27,6 +29,7 @@ const MAX_ENGRAVING_LENGTH = 20;
 
 const ProductDetails: React.FC<ProductDetailsProps> = ({
   product,
+  allProducts,
   onAddToCart,
   onBuyNow,
   onBack,
@@ -131,18 +134,16 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
     });
   };
 
-  const relatedProducts = PRODUCTS.filter(p => {
-    if (!p || p.id === product.id) return false;
-    const pCats = p.categories && p.categories.length > 0 ? p.categories : [p.category];
-    const productCats = product.categories && product.categories.length > 0 ? product.categories : [product.category];
-    return pCats.some(cat => productCats.includes(cat));
-  }).slice(0, 4);
+  const relatedProducts = useMemo(
+    () => getRelatedProducts(product, allProducts),
+    [allProducts, product]
+  );
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="bg-white min-h-screen pt-32 lg:pt-40 pb-20 font-sans selection:bg-accent selection:text-primaryDark"
+      className="bg-white min-h-screen page-offset pb-20 font-sans selection:bg-accent selection:text-primaryDark"
     >
       {/* Zoom Modal */}
       <AnimatePresence>
@@ -525,8 +526,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
                   transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                 >
                   {activeTab === 'الوصف' && (
-                    <div className="text-right">
-                      <div className="text-xl md:text-xl text-gray-600 leading-[1.8] font-normal whitespace-pre-wrap max-w-none">
+                    <div className="text-right px-1 md:px-4">
+                      <div className="max-w-4xl mx-auto text-sm md:text-base text-gray-500 leading-8 md:leading-9 font-normal whitespace-pre-line">
                         {product.longDescription || product.description}
                       </div>
                     </div>

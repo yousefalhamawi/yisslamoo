@@ -14,18 +14,25 @@ import {
   X
 } from 'lucide-react';
 import { profileService, AdminProfile } from '../../services/profileService';
-import { toast } from 'react-hot-toast';
+import { useProfile } from '../../hooks/useProfile';
+import { toast } from '../../utils/toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../utils/cn';
+import {
+  PRIMARY_ADMIN_ROLE,
+  STAFF_ROLE,
+  canManageStaff,
+} from '../../../supabase/functions/_shared/staffRoles';
 
 const StaffPage: React.FC = () => {
+  const { profile: currentProfile } = useProfile();
   const [staff, setStaff] = useState<AdminProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newMemberEmail, setNewMemberEmail] = useState('');
-  const [newMemberRole, setNewMemberRole] = useState('مشرف');
+  const [newMemberRole, setNewMemberRole] = useState(STAFF_ROLE);
   const [isAdding, setIsAdding] = useState(false);
 
   const fetchStaff = async () => {
@@ -70,11 +77,12 @@ const StaffPage: React.FC = () => {
   };
 
   const handleRoleChange = async (id: string, newRole: string) => {
+    if (!canManageStaff(currentProfile?.role)) return;
     const member = staff.find(s => s.id === id);
     if (!member) return;
 
     try {
-      await profileService.updateProfile({ ...member, role: newRole });
+      await profileService.updateStaffRole(id, newRole);
       setStaff(staff.map(s => s.id === id ? { ...s, role: newRole } : s));
       toast.success(`تم تغيير رتبة ${member.name} إلى ${newRole}`);
     } catch (err) {
@@ -84,6 +92,7 @@ const StaffPage: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
+    if (!canManageStaff(currentProfile?.role)) return;
     if (!window.confirm('هل أنت متأكد من حذف هذا العضو؟ سيفقد صلاحية الوصول للإدارة.')) return;
 
     try {
@@ -107,6 +116,8 @@ const StaffPage: React.FC = () => {
     return name.toLowerCase().includes(term) || 
            email.toLowerCase().includes(term);
   });
+  const systemAdminCount = staff.filter((member) => member.role === PRIMARY_ADMIN_ROLE).length;
+  const canManageTeam = canManageStaff(currentProfile?.role);
 
   if (loading) {
     return (
@@ -135,13 +146,15 @@ const StaffPage: React.FC = () => {
               className="bg-white border border-slate-200 rounded-xl py-2.5 pr-11 pl-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all w-64"
             />
           </div>
-          <button 
-            onClick={() => setIsAddModalOpen(true)}
-            className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-black text-sm shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all flex items-center gap-2"
-          >
-            <UserPlus className="w-4 h-4" />
-            إضافة عضو جديد
-          </button>
+          {canManageTeam && (
+            <button 
+              onClick={() => setIsAddModalOpen(true)}
+              className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-black text-sm shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all flex items-center gap-2"
+            >
+              <UserPlus className="w-4 h-4" />
+              إضافة عضو جديد
+            </button>
+          )}
         </div>
       </div>
 
@@ -207,9 +220,7 @@ const StaffPage: React.FC = () => {
                         onChange={(e) => setNewMemberRole(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pr-11 pl-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all appearance-none cursor-pointer"
                       >
-                        <option value="مدير النظام">مدير النظام (صلاحيات كاملة)</option>
-                        <option value="مشرف">مشرف (صلاحيات محدودة)</option>
-                        <option value="محرر">محرر (إدارة المنتجات فقط)</option>
+                        <option value={STAFF_ROLE}>مشرف</option>
                       </select>
                     </div>
                   </div>
@@ -315,15 +326,14 @@ const StaffPage: React.FC = () => {
                       <select 
                         value={member.role}
                         onChange={(e) => handleRoleChange(member.id!, e.target.value)}
+                        disabled={!canManageTeam || (member.role === PRIMARY_ADMIN_ROLE && systemAdminCount === 1)}
                         className={cn(
-                          "text-xs font-black px-3 py-1.5 rounded-full border-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer transition-all",
-                          member.role === 'مدير النظام' ? "bg-indigo-50 text-indigo-600" : "bg-slate-100 text-slate-600"
+                          "text-xs font-black px-3 py-1.5 rounded-full border-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer transition-all disabled:cursor-not-allowed disabled:opacity-70",
+                          member.role === PRIMARY_ADMIN_ROLE ? "bg-indigo-50 text-indigo-600" : "bg-slate-100 text-slate-600"
                         )}
                       >
-                        <option value="مدير النظام">مدير النظام</option>
-                        <option value="مشرف">مشرف</option>
-                        <option value="محرر">محرر</option>
-                        <option value="عميل">عميل</option>
+                        <option value={PRIMARY_ADMIN_ROLE}>مدير النظام</option>
+                        <option value={STAFF_ROLE}>مشرف</option>
                       </select>
                     </td>
                     <td className="px-8 py-5">
@@ -335,7 +345,7 @@ const StaffPage: React.FC = () => {
                     <td className="px-8 py-5 text-right">
                       <button
                         onClick={() => handleDelete(member.id!)}
-                        disabled={isDeleting === member.id}
+                        disabled={!canManageTeam || isDeleting === member.id || (member.role === PRIMARY_ADMIN_ROLE && systemAdminCount === 1)}
                         className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all disabled:opacity-50"
                         title="حذف العضو"
                       >

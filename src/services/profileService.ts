@@ -1,4 +1,4 @@
-import { toast } from 'react-hot-toast';
+import { toast } from '../utils/toast';
 import { supabase } from '../supabase';
 
 export interface AdminProfile {
@@ -11,6 +11,19 @@ export interface AdminProfile {
 }
 
 const TABLE_NAME = 'profiles';
+
+const invokeStaffManagement = async (
+  body: Record<string, unknown>,
+): Promise<AdminProfile> => {
+  const { data, error } = await supabase.functions.invoke('manage-staff', { body });
+
+  if (error || !data?.profile) {
+    console.error('Supabase Error (STAFF MANAGEMENT):', error);
+    throw new Error('فشل في إدارة العضو');
+  }
+
+  return data.profile as AdminProfile;
+};
 
 export const profileService = {
   getProfile: async (userId: string): Promise<AdminProfile> => {
@@ -27,71 +40,33 @@ export const profileService = {
     return data as AdminProfile;
   },
 
-  updateProfile: async (profile: AdminProfile): Promise<AdminProfile> => {
-    // If we have an ID, we upsert by ID. If not, we try to upsert by email
-    const { data, error } = await supabase
-      .from(TABLE_NAME)
-      .upsert(profile, { onConflict: profile.id ? 'id' : 'email' })
-      .select()
-      .maybeSingle();
-
-    if (error) {
-      console.error('Supabase Error (UPDATE):', error);
-      throw new Error('فشل في تحديث الملف الشخصي');
-    }
+  updateOwnProfile: async (profile: AdminProfile): Promise<AdminProfile> => {
+    const updatedProfile = await invokeStaffManagement({
+      action: 'update-self',
+      name: profile.name,
+      avatar: profile.avatar,
+    });
     toast.success('تم تحديث البيانات بنجاح');
-    return data as AdminProfile;
+    return updatedProfile;
   },
 
   createInvite: async (email: string, role: string): Promise<AdminProfile> => {
-    // التحقق أولاً مما إذا كان البريد موجوداً
-    const { data: existing } = await supabase
-      .from(TABLE_NAME)
-      .select('id')
-      .eq('email', email)
-      .maybeSingle();
+    const normalizedEmail = email.trim().toLowerCase();
+    const { data, error } = await supabase.functions.invoke('invite-staff', {
+      body: { email: normalizedEmail, role },
+    });
 
-    let data, error;
-    if (existing) {
-      // تحديث الدور فقط إذا كان المستخدم موجوداً
-      const result = await supabase
-        .from(TABLE_NAME)
-        .update({
-          role,
-          name: email.split('@')[0],
-          avatar: `https://i.pravatar.cc/150?u=${email}`,
-          lastLogin: new Date().toISOString()
-        })
-        .eq('id', existing.id)
-        .select()
-        .maybeSingle();
-      data = result.data;
-      error = result.error;
-    } else {
-      // إضافة جديد — نولّد UUID مؤقت. سيُستبدل بـ auth user id عند أول تسجيل دخول
-      const tempId = crypto.randomUUID();
-      const result = await supabase
-        .from(TABLE_NAME)
-        .insert({
-          id: tempId,
-          email,
-          role,
-          name: email.split('@')[0],
-          avatar: `https://i.pravatar.cc/150?u=${email}`,
-          lastLogin: new Date().toISOString()
-        })
-        .select()
-        .maybeSingle();
-      data = result.data;
-      error = result.error;
-    }
-
-    if (error) {
+    if (error || !data?.profile) {
       console.error('Supabase Error (INVITE):', error);
       throw new Error('فشل في إنشاء الدعوة');
     }
-    return data as AdminProfile;
+
+    return data.profile as AdminProfile;
   },
+
+  updateStaffRole: async (staffId: string, role: string): Promise<AdminProfile> => (
+    invokeStaffManagement({ action: 'change-role', staffId, role })
+  ),
 
   getAllStaff: async (): Promise<AdminProfile[]> => {
     const { data, error } = await supabase
@@ -106,16 +81,8 @@ export const profileService = {
     return data as AdminProfile[];
   },
 
-  deleteStaff: async (id: string): Promise<void> => {
-    const { error } = await supabase
-      .from(TABLE_NAME)
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      console.error('Supabase Error (DELETE STAFF):', error);
-      throw new Error('فشل في حذف العضو');
-    }
+  deleteStaff: async (staffId: string): Promise<void> => {
+    await invokeStaffManagement({ action: 'delete', staffId });
   },
 
   findByEmail: async (email: string): Promise<AdminProfile | null> => {
@@ -130,5 +97,5 @@ export const profileService = {
       return null;
     }
     return data as AdminProfile;
-  }
+  },
 };

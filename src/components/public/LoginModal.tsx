@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { validateEmail, validatePassword, validatePhone } from '../../utils/validation';
-import hotToast from 'react-hot-toast';
+import hotToast from '../../utils/toast';
+import { FORM_SUBMIT, formInput } from '../../constants/formStyles';
 import { supabase } from '../../supabase';
 
 interface LoginModalProps {
@@ -263,7 +264,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                                 setFormData({ ...formData, name: e.target.value });
                                 if (errors.name) setErrors({ ...errors, name: '' });
                               }}
-                              className={`w-full bg-gray-50 border ${errors.name ? 'border-red-500' : 'border-gray-100'} rounded-xl px-5 py-3.5 focus:outline-none focus:border-primary focus:bg-white transition-all text-right font-bold text-base`}
+                              className={formInput(!!errors.name)}
                             />
                             {errors.name && <p className="text-[10px] text-red-500 font-bold mr-2 mt-1">{errors.name}</p>}
                           </div>
@@ -278,7 +279,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                                 setFormData({ ...formData, phone: e.target.value });
                                 if (errors.phone) setErrors({ ...errors, phone: '' });
                               }}
-                              className={`w-full bg-gray-50 border ${errors.phone ? 'border-red-500' : 'border-gray-100'} rounded-xl px-5 py-3.5 focus:outline-none focus:border-primary focus:bg-white transition-all text-right font-bold text-base`}
+                              className={formInput(!!errors.phone)}
                               dir="ltr"
                             />
                             {errors.phone && <p className="text-[10px] text-red-500 font-bold mr-2 mt-1">{errors.phone}</p>}
@@ -298,7 +299,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                           setFormData({ ...formData, email: e.target.value });
                           if (errors.email) setErrors({ ...errors, email: '' });
                         }}
-                        className={`w-full bg-gray-50 border ${errors.email ? 'border-red-500' : 'border-gray-100'} rounded-xl px-5 py-3.5 focus:outline-none focus:border-primary focus:bg-white transition-all text-right font-bold text-base`}
+                        className={formInput(!!errors.email)}
                       />
                       {errors.email && <p className="text-[10px] text-red-500 font-bold mr-2 mt-1">{errors.email}</p>}
                     </div>
@@ -321,7 +322,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                         whileTap={{ scale: 0.98 }}
                         disabled={loading}
                         type="submit"
-                        className="w-full bg-primary text-white font-black py-4 rounded-2xl shadow-lg shadow-primary/20 hover:bg-primaryDark transition-all text-lg disabled:opacity-50"
+                        className={FORM_SUBMIT}
                       >
                         {loading ? 'جاري التحميل...' : 'إرسال رمز التحقق'}
                       </motion.button>
@@ -363,7 +364,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                         whileTap={{ scale: 0.98 }}
                         disabled={loading || (otpCode.length !== 6 && otpCode.length !== 8)}
                         type="submit"
-                        className="w-full bg-primary text-white font-black py-4 rounded-2xl shadow-lg shadow-primary/20 hover:bg-primaryDark transition-all text-lg disabled:opacity-50"
+                        className={FORM_SUBMIT}
                       >
                         {loading ? 'جاري التحقق...' : 'تأكيد الدخول'}
                       </motion.button>

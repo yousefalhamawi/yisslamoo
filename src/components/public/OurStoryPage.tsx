@@ -85,33 +85,37 @@ const OurStoryPage: React.FC = () => {
 
   return (
     <div className="bg-[#FCFBFA] min-h-screen text-right pb-24">
-      {/* Breadcrumb / Banner Section */}
-      <section className="relative pt-40 pb-24 bg-gradient-to-br from-[#2E1065] to-[#4C1D95] text-white overflow-hidden">
-        {/* Soft Decorative Background */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-50%] right-[-20%] w-[80%] h-[150%] bg-[#D4AF37]/10 rounded-full blur-[140px] rotate-12" />
-          <div className="absolute bottom-[-50%] left-[-20%] w-[60%] h-[120%] bg-[#2E1065]/60 rounded-full blur-[120px]" />
-          <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]" />
-        </div>
-
-        <div className="container mx-auto px-6 relative z-10 max-w-6xl">
-          {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-xs font-bold text-[#D4AF37] mb-6 justify-start">
-            <span className="cursor-pointer hover:underline" onClick={() => navigate('/')}>الرئيسية</span>
-            <span className="text-white/40">/</span>
-            <span className="text-white/90">قصتنا</span>
+      {/* Editorial page header — aligned with the shop and collections pages. */}
+      <section className="page-offset-lg pb-16 md:pb-20 bg-[#FCFBFA]">
+        <div className="container mx-auto px-6 max-w-4xl text-center">
+          <nav
+            className="flex items-center justify-center gap-2 text-[10px] font-bold tracking-[0.2em] text-gray-400 mb-6"
+            aria-label="مسار التنقل"
+          >
+            <button
+              type="button"
+              className="transition-colors hover:text-primary"
+              onClick={() => navigate('/')}
+            >
+              الرئيسية
+            </button>
+            <span className="text-gray-300">/</span>
+            <span className="text-primaryDark">قصتنا</span>
           </nav>
 
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="max-w-3xl"
+            transition={{ duration: 0.6 }}
           >
-            <h1 className="text-4xl md:text-6xl font-black mb-6 tracking-tight text-white leading-tight">
+            <span className="block mb-4 text-[10px] font-bold uppercase tracking-[0.4em] text-primary">
+              من نحن
+            </span>
+            <h1 className="mb-5 text-4xl md:text-6xl font-bold tracking-tight leading-tight text-primaryDark">
               قصتنا
             </h1>
-            <p className="text-white/80 font-normal text-base md:text-lg leading-relaxed max-w-2xl">
+            <div className="w-16 h-px mx-auto mb-5 bg-accent/70" />
+            <p className="max-w-2xl mx-auto text-sm md:text-base font-normal leading-7 md:leading-8 text-gray-500">
               تعرّف على الشغف والرؤية وراء متجر يسلمو، أول وجهة إلكترونية متكاملة لصناعة اللحظات الدافئة والإهداء الفاخر في سوريا.
             </p>
           </motion.div>
@@ -119,32 +123,55 @@ const OurStoryPage: React.FC = () => {
       </section>
 
       {/* Intro Section - The Concept of "Yaslamo" */}
-      <section className="py-24 container mx-auto px-6 max-w-6xl">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <section className="relative py-16 md:py-24 overflow-hidden">
+        <div className="absolute inset-x-0 top-1/2 h-[75%] -translate-y-1/2 bg-gradient-to-l from-[#F6F1FA] via-white to-[#FFF8EC]" />
+        <div className="absolute top-20 right-[8%] w-44 h-44 rounded-full bg-[#D4AF37]/10 blur-3xl" />
+        <div className="absolute bottom-10 left-[10%] w-56 h-56 rounded-full bg-[#4C1D95]/10 blur-3xl" />
+
+        <div className="container relative mx-auto px-6 max-w-6xl">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="lg:col-span-7 space-y-6"
+            className="lg:col-span-7 bg-white/80 backdrop-blur-sm rounded-[2rem] md:rounded-[2.5rem] p-7 md:p-10 border border-white shadow-[0_24px_80px_rgba(46,16,101,0.08)] space-y-6"
           >
-            <div className="flex items-center gap-3 justify-start text-[#D4AF37] font-bold text-xs uppercase tracking-[0.3em]">
-              <span className="w-8 h-px bg-[#D4AF37]" />
+            <div className="flex items-center justify-start gap-3 text-[#B38728] font-bold text-[10px] uppercase tracking-[0.3em]">
+              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[#D4AF37]/15 text-[#B38728]">
+                <Sparkles size={14} />
+              </span>
               <span>البداية والاسم</span>
+              <span className="w-10 h-px bg-[#D4AF37]/70" />
             </div>
-            <h2 className="text-3xl md:text-4xl font-black text-[#1A0E2B] leading-tight">
-              الأول في سوريا... تُقال للتعبير عن الامتنان والتقدير.
+            <h2 className="max-w-xl text-3xl md:text-[2.7rem] font-black text-[#1A0E2B] leading-[1.28] tracking-tight">
+              كلمة صغيرة، ومعنى كبير من الامتنان والتقدير.
             </h2>
-            <div className="text-gray-600 text-base md:text-lg leading-relaxed font-light space-y-6">
-              <p className="bg-primary/5 border-r-4 border-[#4C1D95] p-5 rounded-l-2xl font-medium text-[#2E1065]">
-                أصلها من الفعل <strong className="text-[#D4AF37] font-black">"سَلِم"</strong> أي الدعاء بالسلامة والعافية، وكأن القائل يقول: <span className="underline decoration-[#D4AF37] decoration-2 font-bold">"يسلم إيدك"</span>.
+            <div className="relative overflow-hidden rounded-2xl bg-[#F6F1FA] border border-[#4C1D95]/10 px-6 py-5 text-[#2E1065]">
+              <span className="absolute top-[-18px] left-5 text-7xl leading-none font-serif text-[#D4AF37]/25">“</span>
+              <p className="relative text-base md:text-lg leading-8 font-medium">
+                أصلها من الفعل <strong className="text-[#B38728] font-black">"سَلِم"</strong> أي الدعاء بالسلامة والعافية، وكأن القائل يقول: <span className="font-black">"يسلم إيدك"</span>.
               </p>
+            </div>
+            <div className="text-gray-600 text-sm md:text-base leading-8 font-normal space-y-4">
               <p>
-                من هنا، وُلِد <strong className="text-[#2E1065] font-bold">"متجر يسلمو"</strong> – أول متجر إلكتروني في سوريا متخصص بالهدايا، بتشكيلة واسعة من المنتجات التي تجمع بين اللمسة الشخصية، الجودة العالية، والتصميم الراقي.
+                من هنا، وُلِد <strong className="text-[#2E1065] font-black">"متجر يسلمو"</strong> – وجهتك للهدايا المختارة بعناية، حيث تجتمع اللمسة الشخصية والجودة العالية والتصميم الراقي.
               </p>
-              <p className="font-bold text-[#1A0E2B]">
+              <p className="font-black text-[#1A0E2B]">
                 نحن لا نبيع منتجات فحسب… نحن نساعدك على التعبير، الإهداء، والاحتفال.
               </p>
+            </div>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {[
+                { label: 'اختيار بعناية', icon: Gift },
+                { label: 'لمسة شخصية', icon: Heart },
+                { label: 'فخامة في التفاصيل', icon: Sparkles },
+              ].map(({ label, icon: Icon }) => (
+                <span key={label} className="inline-flex items-center gap-1.5 rounded-full bg-white border border-[#4C1D95]/10 px-3.5 py-2 text-[10px] font-bold text-primaryDark shadow-sm">
+                  <Icon size={13} className="text-[#B38728]" />
+                  {label}
+                </span>
+              ))}
             </div>
           </motion.div>
 
@@ -153,15 +180,25 @@ const OurStoryPage: React.FC = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="lg:col-span-5 relative"
+            className="lg:col-span-5 relative px-3 md:px-5"
           >
-            <div className="absolute inset-0 bg-gradient-to-tr from-[#D4AF37]/20 to-transparent rounded-[3rem] blur-2xl -z-10 transform scale-95" />
-            <img 
-              src="https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=800&auto=format&fit=crop" 
-              alt="الهدايا الفاخرة في يسلمو" 
-              className="w-full h-[400px] object-cover rounded-[3rem] shadow-2xl border border-gray-100 transform hover:scale-[1.02] transition-transform duration-500"
-            />
+            <div className="absolute -inset-2 rounded-[2.5rem] bg-gradient-to-br from-[#D4AF37]/35 via-transparent to-[#4C1D95]/25 blur-sm" />
+            <div className="relative overflow-hidden rounded-[2rem] md:rounded-[2.5rem] border-[10px] border-white shadow-[0_28px_70px_rgba(46,16,101,0.16)] bg-white">
+              <img 
+                src="https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=800&auto=format&fit=crop" 
+                alt="الهدايا الفاخرة في يسلمو" 
+                className="w-full h-[330px] sm:h-[410px] object-cover transition-transform duration-700 hover:scale-105"
+              />
+              <div className="absolute inset-x-4 bottom-4 flex items-center justify-between rounded-2xl bg-[#2E1065]/90 backdrop-blur-md px-4 py-3 text-white shadow-lg">
+                <div>
+                  <p className="text-[9px] text-white/60 mb-0.5">هدية تحكي قصة</p>
+                  <p className="text-xs font-bold">كل تفصيل يصنع لحظة</p>
+                </div>
+                <Gift size={20} className="text-[#D4AF37]" />
+              </div>
+            </div>
           </motion.div>
+          </div>
         </div>
       </section>
 

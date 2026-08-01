@@ -18,6 +18,7 @@ import { useProducts } from '../../hooks/useProducts';
 import { Category } from '../../types/admin';
 import { uploadService } from '../../services/uploadService';
 import { ImageUpload } from '../../components/admin/ImageUpload';
+import { CATEGORY_ICON_OPTIONS, resolveCategoryIcon } from '../../constants/categoryIcons';
 
 const CategoriesPage: React.FC = () => {
   const { categories, loading: categoriesLoading, addCategory, updateCategory, deleteCategory } = useCategories();
@@ -28,6 +29,7 @@ const CategoriesPage: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [selectedIcon, setSelectedIcon] = useState<string>('');
 
   const loading = categoriesLoading || productsLoading;
 
@@ -83,6 +85,7 @@ const CategoriesPage: React.FC = () => {
     setEditingCategory(category);
     setImagePreview(category.image);
     setImageFile(null);
+    setSelectedIcon(category.icon || '');
     setIsModalOpen(true);
   };
 
@@ -121,6 +124,7 @@ const CategoriesPage: React.FC = () => {
         image: imageUrl || `https://picsum.photos/seed/${Math.random()}/100/100`,
         status: formData.get('status') === 'on' ? 'active' : 'inactive' as 'active' | 'inactive',
         parent_id: formData.get('parent_id') as string || null,
+        icon: (formData.get('icon') as string) || null,
       };
 
       if (editingCategory) {
@@ -156,6 +160,7 @@ const CategoriesPage: React.FC = () => {
         <button 
           onClick={() => {
             setEditingCategory(null);
+            setSelectedIcon('');
             setIsModalOpen(true);
           }}
           className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-black text-sm shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all flex items-center gap-2"
@@ -303,6 +308,47 @@ const CategoriesPage: React.FC = () => {
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                     placeholder="مثلاً: هدايا فاخرة"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black text-slate-700 uppercase tracking-widest">أيقونة التصنيف</label>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    تظهر بجانب اسم التصنيف في المتجر. إن لم تختر شيئاً سيتم اختيارها تلقائياً حسب الاسم.
+                  </p>
+                  <input type="hidden" name="icon" value={selectedIcon} />
+                  <div className="grid grid-cols-6 sm:grid-cols-8 gap-2 max-h-44 overflow-y-auto p-2 bg-slate-50 border border-slate-200 rounded-xl">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedIcon('')}
+                      title="تلقائي حسب الاسم"
+                      aria-pressed={selectedIcon === ''}
+                      className={`aspect-square rounded-lg flex items-center justify-center text-[9px] font-bold transition-all ${
+                        selectedIcon === ''
+                          ? 'bg-indigo-600 text-white ring-2 ring-indigo-300'
+                          : 'bg-white text-slate-400 border border-slate-200 hover:border-indigo-400'
+                      }`}
+                    >
+                      تلقائي
+                    </button>
+
+                    {CATEGORY_ICON_OPTIONS.map(({ name, label, Icon }) => (
+                      <button
+                        key={name}
+                        type="button"
+                        onClick={() => setSelectedIcon(name)}
+                        title={label}
+                        aria-label={label}
+                        aria-pressed={selectedIcon === name}
+                        className={`aspect-square rounded-lg flex items-center justify-center transition-all ${
+                          selectedIcon === name
+                            ? 'bg-indigo-600 text-white ring-2 ring-indigo-300'
+                            : 'bg-white text-slate-500 border border-slate-200 hover:border-indigo-400 hover:text-indigo-600'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="space-y-2">

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
+import { toast } from '../utils/toast';
 import { Category } from '../types/admin';
 import { categoryService } from '../services/categoryService';
 import { checkSupabaseConfig } from '../supabase';
@@ -23,7 +23,7 @@ export const useCategories = () => {
       setCategories(data);
     } catch (err) {
       setError('Failed to fetch categories');
-      toast.error('فشل في تحميل التصنيفات');
+      toast.loadError();
     } finally {
       setLoading(false);
     }

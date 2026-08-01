@@ -1,8 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import AdminLogin from './Login';
-import { toast } from 'react-hot-toast';
+import { toast } from '../../utils/toast';
 import Dashboard from './Dashboard';
 import ProductsPage from './Products';
 import CategoriesPage from './Categories';
@@ -23,51 +23,116 @@ import { useAuth } from '../../contexts/AuthContext';
 import { checkSupabaseConfig, supabaseUrl } from '../../supabase';
 import { profileService } from '../../services/profileService';
 import { AlertCircle } from 'lucide-react';
+import { ADMIN_ROLES, hasAdminAccess } from '../../utils/adminAuthorization';
+import { isVerifiedAdminSession } from '../../utils/adminSessionVerification';
 
 const AdminDashboard: React.FC = () => {
   const { user, loading: authLoading, signIn, signUp, signOut } = useAuth();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState<AdminPageState>('dashboard');
+  const pendingAdminLoginRef = useRef(false);
+  const verifiedAdminUserIdRef = useRef<string | null>(null);
 
   const isConfigured = checkSupabaseConfig();
 
   useEffect(() => {
+    let isActive = true;
+
     const checkAdminStatus = async () => {
       if (authLoading) return;
 
+      if (isActive) {
+        setIsLoading(true);
+      }
+
       if (!user) {
-        setIsAuthenticated(false);
-        setIsLoading(false);
+        if (isActive) {
+          verifiedAdminUserIdRef.current = null;
+          setIsAuthenticated(false);
+          setIsLoading(false);
+        }
         return;
       }
 
       if (!isConfigured) {
-        setIsAuthenticated(false);
-        setIsLoading(false);
+        if (isActive) {
+          setIsAuthenticated(false);
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      // A successful explicit login already verified this exact Supabase user.
+      // Do not let a duplicate asynchronous profile request replace it with a
+      // stale failure and render the login form again.
+      if (isVerifiedAdminSession(verifiedAdminUserIdRef.current, user.id)) {
+        if (isActive) {
+          setIsAuthenticated(true);
+          setIsLoading(false);
+        }
         return;
       }
 
       try {
         const profile = await profileService.getProfile(user.id);
-        const hasAdminRole = profile && (profile.role === 'مدير النظام' || profile.role === 'مشرف');
+
+        if (!isActive) return;
+
+        if (isVerifiedAdminSession(verifiedAdminUserIdRef.current, user.id)) {
+          setIsAuthenticated(true);
+          return;
+        }
+
+        // لا يوجد صفّ في جدول profiles لهذا الحساب — أو أن سياسات RLS تمنع قراءته
+        if (!profile) {
+          setIsAuthenticated(false);
+          pendingAdminLoginRef.current = false;
+          console.error(
+            `[Admin] لا يوجد ملف تعريف للمستخدم ${user.email} (id: ${user.id}) في جدول profiles`
+          );
+          toast.error('لا يوجد ملف تعريف لهذا الحساب في لوحة التحكم. راجع جدول profiles.');
+          return;
+        }
+
+        // التقليم يحمي من مسافة زائدة في نهاية القيمة المخزّنة
+        const role = (profile.role || '').trim();
+        const hasAdminRole = hasAdminAccess(role);
 
         if (hasAdminRole) {
+          verifiedAdminUserIdRef.current = user.id;
           setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-          toast.error('ليس لديك صلاحيات الوصول للإدارة');
+          if (pendingAdminLoginRef.current) {
+            toast.success('تم تسجيل الدخول بنجاح');
+            pendingAdminLoginRef.current = false;
+          }
+          return;
         }
+
+        setIsAuthenticated(false);
+        pendingAdminLoginRef.current = false;
+        console.error(
+          `[Admin] الحساب ${user.email} دوره "${role || '(فارغ)'}" — المسموح: ${ADMIN_ROLES.join('، ')}`
+        );
+        toast.error(`ليس لديك صلاحيات الإدارة. دورك الحالي: "${role || 'غير محدّد'}"`);
       } catch (err) {
         console.error('Failed to verify admin status:', err);
+        if (!isActive) return;
         setIsAuthenticated(false);
-        toast.error('فشل التحقق من صلاحيات الإدارة');
+        pendingAdminLoginRef.current = false;
+        toast.error('فشل التحقق من صلاحيات الإدارة. تحقّق من الاتصال وسياسات RLS.');
+      } finally {
+        if (isActive) {
+          setIsLoading(false);
+        }
       }
-
-      setIsLoading(false);
     };
 
-    checkAdminStatus();
+    void checkAdminStatus();
+
+    return () => {
+      isActive = false;
+    };
   }, [user, authLoading, isConfigured]);
 
   const validateForm = (email: string, password: string) => {
@@ -85,12 +150,39 @@ const AdminDashboard: React.FC = () => {
 
   const handleLogin = async (email: string, password: string, _rememberMe: boolean = false) => {
     if (!validateForm(email, password)) return;
+    pendingAdminLoginRef.current = true;
+    setIsLoading(true);
     try {
-      const { error } = await signIn(email, password);
+      const { data, error } = await signIn(email, password);
       if (error) throw error;
+      if (!data?.user) {
+        throw new Error('لم تكتمل جلسة تسجيل الدخول. حاول مرة أخرى.');
+      }
 
-      toast.success('تم تسجيل الدخول بنجاح');
+      // Verify the role from the newly-created session instead of waiting for
+      // React's auth-state update. This prevents a race that could briefly
+      // render the login form again after a valid password submission.
+      const profile = await profileService.getProfile(data.user.id);
+      const role = (profile?.role || '').trim();
+
+      if (!profile) {
+        throw new Error('لا يوجد ملف تعريف إداري لهذا الحساب.');
+      }
+      if (!hasAdminAccess(role)) {
+        throw new Error('هذا الحساب لا يملك صلاحيات الإدارة.');
+      }
+
+      verifiedAdminUserIdRef.current = data.user.id;
+      setIsAuthenticated(true);
+      setIsLoading(false);
+      if (pendingAdminLoginRef.current) {
+        toast.success('تم تسجيل الدخول بنجاح');
+        pendingAdminLoginRef.current = false;
+      }
     } catch (error: any) {
+      verifiedAdminUserIdRef.current = null;
+      pendingAdminLoginRef.current = false;
+      setIsLoading(false);
       console.error('Login error:', error);
       if (error.message === 'Failed to fetch') {
         toast.error(
@@ -148,6 +240,7 @@ const AdminDashboard: React.FC = () => {
     } catch (err) {
       console.error("Supabase signOut error:", err);
     } finally {
+      verifiedAdminUserIdRef.current = null;
       setIsAuthenticated(false);
     }
   };

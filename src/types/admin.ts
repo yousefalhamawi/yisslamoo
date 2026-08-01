@@ -156,6 +156,8 @@ export interface Category {
   status: 'active' | 'inactive';
   image: string;
   parent_id?: string | null;
+  /** اسم أيقونة lucide-react المختارة من لوحة التحكم — فارغ يعني استنتاجها من الاسم */
+  icon?: string | null;
 }
 
 export interface Collection {

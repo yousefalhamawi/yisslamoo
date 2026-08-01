@@ -27,6 +27,7 @@ import {
 import { Product } from '../../types/index';
 import ProductCard from './ProductCard';
 import { useCategories } from '../../hooks/useCategories';
+import { resolveCategoryIcon } from '../../constants/categoryIcons';
 
 interface TabItem {
   id: 'offers' | 'wishlist' | 'all' | 'bestsellers' | 'trending' | 'new';
@@ -52,38 +53,6 @@ const TABS_CONFIG: TabItem[] = [
     dataSource: 'wishlist',
     categoryLink: '/shop?filter=recommended'
   },
-  {
-    id: 'new',
-    label: 'المنتجات المجددة',
-    icon: Eye,
-    dataSource: 'new',
-    categoryLink: '/shop?sort=renewed',
-    disabled: true
-  },
-  {
-    id: 'trending',
-    label: 'الأكثر رواجاً',
-    icon: Zap,
-    dataSource: 'trending',
-    categoryLink: '/shop?sort=trending',
-    disabled: true
-  },
-  {
-    id: 'bestsellers',
-    label: 'الأكثر مبيعاً',
-    icon: Trophy,
-    dataSource: 'bestsellers',
-    categoryLink: '/shop?sort=bestsellers',
-    disabled: true
-  },
-  {
-    id: 'all',
-    label: 'عرض الكل',
-    icon: Grid,
-    dataSource: 'all',
-    categoryLink: '/shop',
-    disabled: true
-  },
 ];
 
 const CATEGORIES_CONFIG = [
@@ -97,19 +66,6 @@ const CATEGORIES_CONFIG = [
   { label: 'اكسسوارات السفر والرحلات', icon: Briefcase, link: '/shop?category=travel' }
 ];
 
-const getCategoryIcon = (name: string) => {
-  const lowercaseName = name.toLowerCase();
-  if (lowercaseName.includes('كهربا') || lowercaseName.includes('الكترون') || lowercaseName.includes('electr')) return Monitor;
-  if (lowercaseName.includes('منزل') || lowercaseName.includes('أثاث') || lowercaseName.includes('تحسين') || lowercaseName.includes('home')) return BedDouble;
-  if (lowercaseName.includes('صحة') || lowercaseName.includes('عناية') || lowercaseName.includes('جسم') || lowercaseName.includes('بشرة') || lowercaseName.includes('health') || lowercaseName.includes('care') || lowercaseName.includes('جمال')) return HeartPulse;
-  if (lowercaseName.includes('ملابس') || lowercaseName.includes('أزياء') || lowercaseName.includes('مكياج') || lowercaseName.includes('شفا') || lowercaseName.includes('عيون') || lowercaseName.includes('وجه') || lowercaseName.includes('مكياج') || lowercaseName.includes('fashion') || lowercaseName.includes('makeup')) return Shirt;
-  if (lowercaseName.includes('لياقة') || lowercaseName.includes('رياضة') || lowercaseName.includes('سفر') || lowercaseName.includes('رحلات') || lowercaseName.includes('sport') || lowercaseName.includes('travel')) return Activity;
-  if (lowercaseName.includes('جوال') || lowercaseName.includes('هاتف') || lowercaseName.includes('موبايل') || lowercaseName.includes('phone')) return Smartphone;
-  if (lowercaseName.includes('أجهزة') || lowercaseName.includes('ذكية') || lowercaseName.includes('smart')) return Camera;
-  if (lowercaseName.includes('حقيبة') || lowercaseName.includes('اكسسوار') || lowercaseName.includes('حقائب') || lowercaseName.includes('accessory') || lowercaseName.includes('bag')) return Briefcase;
-  if (lowercaseName.includes('هدية') || lowercaseName.includes('هدايا') || lowercaseName.includes('gift')) return Gift;
-  return Sparkles; // Default fallback icon
-};
 
 interface ProductTabsProps {
   products: Product[];
@@ -164,7 +120,7 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
   const sidebarCategories = activeDbCategories.length > 0
     ? activeDbCategories.map(c => ({
       label: c.name,
-      icon: getCategoryIcon(c.name),
+      icon: resolveCategoryIcon(c),
       link: `/category/${c.slug}`
     }))
     : CATEGORIES_CONFIG;
@@ -241,7 +197,8 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
           </div>
 
           {/* Main Content Area (Left side in RTL) */}
-          <div className="flex-1 order-2 flex flex-col justify-between">
+          {/* min-w-0 ضروري: بدونه لا ينكمش العمود تحت عرض محتواه فيخرج من الحاوية */}
+          <div className="flex-1 min-w-0 order-2 flex flex-col justify-between">
 
             {/* Highly Creative Tab Switcher */}
             <div className="bg-[#2E1065] rounded-3xl p-3.5 shadow-[0_25px_60px_-25px_rgba(46,16,101,0.15)] mb-10 border border-white/5 relative overflow-hidden">
@@ -260,7 +217,7 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
                       whileTap={!isDisabled ? { scale: 0.97 } : {}}
                       onClick={() => !isDisabled && setActiveTab(tab.id as 'offers' | 'wishlist')}
                       className={`
-                        flex items-center gap-2.5 px-6 py-3.5 rounded-2xl font-bold text-[14px] whitespace-nowrap transition-all duration-300 relative
+                        flex items-center gap-2 sm:gap-2.5 px-4 sm:px-6 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl font-bold text-[13px] sm:text-[14px] whitespace-nowrap transition-all duration-300 relative
                         ${isDisabled
                           ? 'text-white/30 bg-transparent cursor-not-allowed opacity-50'
                           : isActive
@@ -294,7 +251,8 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.98, y: -15 }}
                   transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 items-stretch"
+                  // 4 أعمدة تبدأ من xl فقط: قبلها العمود ضيّق بسبب الشريط الجانبي
+                  className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-5 xl:gap-6 items-stretch"
                 >
                   {displayProducts.map((product, index) => {
                     const isFav = wishlist.includes(product.id);
@@ -304,7 +262,7 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
                         key={getStableListKey(product.id, product.slug, 'product', index)}
                         layout
                         whileHover={{ y: -8, scale: 1.01 }}
-                        className="h-full bg-white/80 backdrop-blur-sm rounded-[2.5rem] p-0 overflow-hidden shadow-[0_20px_50px_-25px_rgba(0,0,0,0.05)] hover:shadow-[0_30px_70px_-20px_rgba(76,29,149,0.12)] border border-white/40 flex flex-col relative group cursor-pointer transition-all duration-500"
+                        className="h-full bg-white/80 backdrop-blur-sm rounded-2xl sm:rounded-[2rem] lg:rounded-[2.5rem] p-0 overflow-hidden shadow-[0_20px_50px_-25px_rgba(0,0,0,0.05)] hover:shadow-[0_30px_70px_-20px_rgba(76,29,149,0.12)] border border-white/40 flex flex-col relative group cursor-pointer transition-all duration-500"
                       >
                         <ProductCard
                           product={product}

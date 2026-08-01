@@ -5,6 +5,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { User } from '../../types/index';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { Bell, LucideIcon, CheckCircle2, AlertCircle, Info, ShoppingCart, Heart, Package, Trash2, CheckCheck, X, House, CircleUserRound, Grid2x2, ShoppingBag } from 'lucide-react';
+import { shouldUseLightNavbarText } from '../../utils/navbarTheme';
 
 interface NavbarProps {
   cartCount: number;
@@ -31,6 +32,31 @@ const Navbar: React.FC<NavbarProps> = ({
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  /**
+   * أول ضغطة تفتح الحقل، والثانية ترسل البحث.
+   * البحث يمرّ عبر الرابط (/shop?search=) ليبقى قابلاً للمشاركة والرجوع إليه.
+   */
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!isSearchOpen) {
+      setIsSearchOpen(true);
+      return;
+    }
+
+    const query = searchTerm.trim();
+    if (!query) {
+      setIsSearchOpen(false);
+      return;
+    }
+
+    navigate(`/shop?search=${encodeURIComponent(query)}`);
+    setIsSearchOpen(false);
+    setIsMobileMenuOpen(false);
+  };
   const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification } = useNotifications();
 
   useEffect(() => {
@@ -47,8 +73,7 @@ const Navbar: React.FC<NavbarProps> = ({
     { label: 'قصتنا', path: '/about' }
   ];
 
-  const isDarkHeaderPage = location.pathname === '/about' || location.pathname === '/policies';
-  const useLightText = isDarkHeaderPage && !isScrolled;
+  const useLightText = shouldUseLightNavbarText(location.pathname, isScrolled);
 
   const handleMobileNavigate = (path: string) => {
     navigate(path);
@@ -82,7 +107,7 @@ const Navbar: React.FC<NavbarProps> = ({
       <header 
         className={`fixed top-[32px] left-0 right-0 z-[100] transition-all duration-700 ease-in-out ${
           isScrolled 
-            ? 'py-3 bg-white/80 backdrop-blur-2xl border-b border-primary/5 shadow-2xl shadow-primary/5' 
+            ? 'py-3 bg-white/80 backdrop-blur-2xl shadow-[0_8px_24px_rgba(46,16,101,0.04)]' 
             : 'py-8 bg-transparent'
         }`}
       >
@@ -345,11 +370,42 @@ const Navbar: React.FC<NavbarProps> = ({
                 </Link>
               ))}
               
-              <button className={`p-3 rounded-2xl transition-all ${useLightText ? 'bg-white/10 hover:bg-white hover:text-primary text-white' : 'bg-primary/5 hover:bg-primary hover:text-white text-primary'}`}>
-                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                 </svg>
-              </button>
+              <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
+                <AnimatePresence initial={false}>
+                  {isSearchOpen && (
+                    <motion.input
+                      key="navbar-search"
+                      initial={{ width: 0, opacity: 0 }}
+                      animate={{ width: 190, opacity: 1 }}
+                      exit={{ width: 0, opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                      autoFocus
+                      type="search"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Escape' && setIsSearchOpen(false)}
+                      placeholder="ابحث عن منتج..."
+                      aria-label="ابحث عن منتج"
+                      className={`h-11 px-4 rounded-2xl text-sm text-right outline-none border transition-colors ${
+                        useLightText
+                          ? 'bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/60'
+                          : 'bg-primary/5 border-primary/10 text-primaryDark placeholder:text-gray-400 focus:border-primary'
+                      }`}
+                    />
+                  )}
+                </AnimatePresence>
+
+                <button
+                  type={isSearchOpen ? 'submit' : 'button'}
+                  onClick={() => !isSearchOpen && setIsSearchOpen(true)}
+                  aria-label={isSearchOpen ? 'ابحث' : 'فتح البحث'}
+                  className={`p-3 rounded-2xl transition-all ${useLightText ? 'bg-white/10 hover:bg-white hover:text-primary text-white' : 'bg-primary/5 hover:bg-primary hover:text-white text-primary'}`}
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </button>
+              </form>
             </div>
 
             {/* زر القائمة للموبايل */}
@@ -385,92 +441,115 @@ const Navbar: React.FC<NavbarProps> = ({
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              dir="rtl"
               className="fixed top-0 right-0 bottom-0 w-[85%] max-w-sm bg-white z-[210] lg:hidden shadow-2xl flex flex-col"
             >
               {/* Drawer Header */}
-              <div className="p-8 flex items-center justify-between border-b border-gray-50">
+              <div className="p-4 flex items-center justify-between border-b border-gray-100">
                  <div className="flex flex-col">
-                    <img src="/img/logo/logo.png" alt="يسلمو" className="h-10 object-contain" />
+                    <img src="/img/logo/logo.png" alt="يسلمو" className="h-7 object-contain" />
                  </div>
                  <button 
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400"
+                  aria-label="إغلاق القائمة"
+                  className="w-11 h-11 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400 shrink-0"
                  >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                  </button>
               </div>
 
+              {/* البحث */}
+              <form onSubmit={handleSearchSubmit} className="mx-4 mt-4 relative">
+                <input
+                  type="search"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="ابحث عن منتج..."
+                  aria-label="ابحث عن منتج"
+                  className="w-full h-11 pr-4 pl-11 rounded-xl bg-gray-50 border border-gray-200 text-sm text-right outline-none focus:border-primary focus:bg-white transition-colors placeholder:text-gray-400"
+                />
+                <button
+                  type="submit"
+                  aria-label="ابحث"
+                  className="absolute left-1 top-1/2 -translate-y-1/2 w-9 h-9 rounded-lg flex items-center justify-center text-gray-400 hover:text-primary transition-colors"
+                >
+                  <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </button>
+              </form>
+
+              {/* قائمة الأمنيات — مباشرة تحت الشعار لتكون أول ما تراه العين */}
+              <button
+                onClick={() => handleMobileNavigate('/wishlist')}
+                className="mx-4 mt-4 py-3 px-3 rounded-xl bg-accent/15 border border-accent/30 text-primary font-bold text-sm flex items-center justify-between active:scale-[0.99] transition-transform"
+              >
+                <div className="flex items-center gap-2">
+                  <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                  <span>قائمة الأمنيات</span>
+                </div>
+                <div className="bg-white min-w-6 h-6 px-1.5 rounded-md text-xs flex items-center justify-center font-bold">
+                  {wishlistCount}
+                </div>
+              </button>
+
               {/* User Section (Mobile) */}
-              <div className="p-8 bg-gray-50/50">
+              <div className="px-4 py-4 mt-4 bg-gray-50/50">
                 {user ? (
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-primary text-white rounded-2xl flex items-center justify-center text-xl font-bold">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 bg-primary text-white rounded-xl flex items-center justify-center text-base font-bold shrink-0">
                       {user.name.charAt(0)}
                     </div>
                     <div className="text-right">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">طاب يومك</p>
-                      <p className="text-lg font-bold text-primaryDark">{user.name}</p>
+                      <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">طاب يومك</p>
+                      <p className="text-sm font-bold text-primaryDark truncate">{user.name}</p>
                     </div>
                   </div>
                 ) : (
                   <button 
                     onClick={() => { setIsMobileMenuOpen(false); onOpenLogin(); }}
-                    className="w-full bg-primary text-white py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-3 shadow-lg shadow-primary/20"
+                    className="w-full bg-primary text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
                   >
-                    <span>تسجيل الدخول</span>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                     </svg>
+                    <span>تسجيل الدخول</span>
                   </button>
                 )}
               </div>
 
               {/* Links List */}
-              <div className="flex-1 overflow-y-auto p-8 space-y-4">
-                <p className="text-[9px] font-bold text-gray-300 uppercase tracking-widest mb-6 border-b border-gray-50 pb-2">التنقل السريع</p>
+              <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
+                <p className="text-[9px] font-bold text-gray-300 uppercase tracking-widest mb-2 border-b border-gray-100 pb-2">التنقل السريع</p>
                 {menuLinks.map((link) => (
                   <button 
                     key={link.path}
                     onClick={() => handleMobileNavigate(link.path)}
-                    className="w-full text-right py-4 px-6 rounded-2xl hover:bg-primary/5 text-lg font-bold text-primaryDark flex items-center justify-between group"
+                    className="w-full py-3 px-3 rounded-xl hover:bg-primary/5 active:bg-primary/10 text-[15px] font-bold text-primaryDark flex items-center justify-between group"
                   >
-                    <svg className="w-5 h-5 text-primary/20 group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <span>{link.label}</span>
+                    <svg className="w-4 h-4 text-primary/25 group-hover:text-primary transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
                     </svg>
-                    <span>{link.label}</span>
                   </button>
                 ))}
-                
-                <div className="pt-8 space-y-4">
-                  <p className="text-[9px] font-bold text-gray-300 uppercase tracking-widest mb-6 border-b border-gray-50 pb-2">إجراءات إضافية</p>
-                  <button 
-                    onClick={() => handleMobileNavigate('/wishlist')}
-                    className="w-full text-right py-4 px-6 rounded-2xl bg-accent/10 text-primary font-bold text-sm flex items-center justify-between"
-                  >
-                    <div className="bg-white/50 px-2 py-1 rounded-lg text-xs">{wishlistCount}</div>
-                    <div className="flex items-center gap-3">
-                       <span>قائمة الأمنيات</span>
-                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                    </div>
-                  </button>
-                </div>
               </div>
 
               {/* Drawer Footer */}
-              <div className="p-8 border-t border-gray-50">
+              <div className="p-4 border-t border-gray-100">
                 {user ? (
                    <button 
                     onClick={() => { setIsMobileMenuOpen(false); onLogout(); }}
-                    className="w-full py-4 text-center text-red-400 font-bold text-sm hover:bg-red-50 rounded-xl transition-colors"
+                    className="w-full py-3 text-center text-red-400 font-bold text-[13px] hover:bg-red-50 rounded-xl transition-colors"
                    >
                      تسجيل الخروج
                    </button>
                 ) : (
-                  <p className="text-center text-[10px] text-gray-300 font-bold uppercase tracking-widest">جميع الحقوق محفوظة &copy; يسلمو</p>
+                  <p className="text-center text-[9px] text-gray-300 font-bold uppercase tracking-widest">جميع الحقوق محفوظة &copy; يسلمو</p>
                 )}
               </div>
             </motion.div>

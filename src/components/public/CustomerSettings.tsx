@@ -8,7 +8,8 @@ import { validateEmail, validatePhone } from '../../utils/validation';
 import { customerService } from '../../services/customerService';
 import { addressService } from '../../services/addressService';
 import { checkSupabaseConfig } from '../../supabase';
-import { toast } from 'react-hot-toast';
+import { toast } from '../../utils/toast';
+import { formInput } from '../../constants/formStyles';
 import { Trash2, Plus, Check } from 'lucide-react';
 
 interface CustomerSettingsProps {
@@ -247,7 +248,7 @@ const CustomerSettings: React.FC<CustomerSettingsProps> = ({ user, customers, on
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/50 pt-32 pb-20 px-4">
+    <div className="min-h-screen bg-gray-50/50 page-offset pb-20 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-black text-gray-900">إعدادات الحساب</h1>
@@ -355,7 +356,7 @@ const CustomerSettings: React.FC<CustomerSettingsProps> = ({ user, customers, on
                           type="text"
                           value={formData.address}
                           onChange={(e) => setFormData({...formData, address: e.target.value})}
-                          className="w-full bg-gray-50 border border-gray-100 rounded-xl pr-12 pl-4 py-3.5 focus:outline-none focus:border-primary focus:bg-white transition-all font-bold"
+                          className={`${formInput()} pr-12`}
                         />
                       </div>
                     </div>
@@ -620,13 +621,6 @@ const CustomerSettings: React.FC<CustomerSettingsProps> = ({ user, customers, on
               </div>
             )}
 
-            <div className="bg-red-50 rounded-3xl p-8 border border-red-100">
-              <h3 className="text-red-600 font-black mb-2">منطقة الخطر</h3>
-              <p className="text-red-400 text-sm font-bold mb-6">بمجرد حذف حسابك، لن تتمكن من استعادة بياناتك أو طلباتك السابقة.</p>
-              <button className="text-red-600 font-black text-sm underline hover:text-red-700 transition-colors">
-                حذف الحساب نهائياً
-              </button>
-            </div>
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { toast } from 'react-hot-toast';
+import { toast } from '../utils/toast';
 import { supabase } from '../supabase';
 
 export interface PaymentMethod {

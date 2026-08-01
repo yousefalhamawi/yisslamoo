@@ -46,20 +46,24 @@ export const reviewService = {
   },
 
   add: async (review: Omit<Review, 'id' | 'status'>): Promise<Review> => {
-    const { data, error } = await supabase
+    const pendingReview: Review = {
+      ...review,
+      id: globalThis.crypto.randomUUID(),
+      status: 'pending',
+    };
+
+    // Public visitors are intentionally unable to read pending reviews. Avoid
+    // requesting a returned row here, otherwise PostgREST evaluates the SELECT
+    // RLS policy after the insert and rejects the submission.
+    const { error } = await supabase
       .from(TABLE_NAME)
-      .insert([{
-        ...review,
-        status: 'pending' // Reviews are pending by default
-      }])
-      .select()
-      .maybeSingle();
+      .insert([pendingReview]);
 
     if (error) {
       console.error('Supabase Error (ADD):', error);
       throw new Error('فشل في إضافة التقييم. يرجى المحاولة لاحقاً.');
     }
-    return data as Review;
+    return pendingReview;
   },
 
   updateStatus: async (id: string, status: Review['status']): Promise<Review> => {

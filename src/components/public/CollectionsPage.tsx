@@ -25,7 +25,7 @@ const CollectionsPage: React.FC<CollectionsPageProps> = ({ onCollectionClick }) 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="bg-white min-h-screen pt-48 lg:pt-56 pb-32 overflow-hidden"
+      className="bg-white min-h-screen page-offset-lg pb-32 overflow-hidden"
     >
       <div className="container mx-auto px-6">
         {/* Header Section */}

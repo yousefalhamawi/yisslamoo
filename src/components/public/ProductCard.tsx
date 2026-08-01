@@ -2,13 +2,14 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { toast } from 'react-hot-toast';
+import { toast } from '../../utils/toast';
 import { Product } from '../../types/index';
 import { ShoppingBag, Heart, Share2, Eye, Plus, Minus, Star } from 'lucide-react';
 import { useCategories } from '../../hooks/useCategories';
 import { getColorHex, getColorName } from '../../utils/colorUtils';
 import { useSharedStore } from '../../store/useSharedStore';
 import { usePricedProduct } from '../../hooks/usePricedProduct';
+import { getProductCardLayout, ProductCardLayout } from '../../utils/productCardLayout';
 
 const MAX_ENGRAVING_LENGTH = 20;
 
@@ -19,9 +20,10 @@ interface ProductCardProps {
   onQuickView?: (p: Product) => void;
   isWishlisted?: boolean;
   onToggleWishlist?: () => void;
+  layout?: ProductCardLayout;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onClick, onQuickView, isWishlisted, onToggleWishlist }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onClick, onQuickView, isWishlisted, onToggleWishlist, layout = 'grid' }) => {
   const { categories } = useCategories();
   const { reviews } = useSharedStore();
   const { displayPrice, displayOldPrice } = usePricedProduct(product);
@@ -43,6 +45,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onClick
   const [giftMessage, setGiftMessage] = useState('');
   const [hoveredColor, setHoveredColor] = useState<string | null>(null);
   const [showCustomization, setShowCustomization] = useState(false);
+  const layoutClasses = getProductCardLayout(layout);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -102,10 +105,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onClick
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="group relative flex flex-col w-full h-full bg-white overflow-hidden rounded-3xl border border-gray-100/50 hover:border-accent/30 transition-all duration-500 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)]"
+      className={`group relative flex w-full bg-white overflow-hidden rounded-3xl border border-gray-100/50 hover:border-accent/30 transition-all duration-500 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] ${layoutClasses.card}`}
     >
       {/* Image Section */}
-      <div className="relative aspect-[4/5] overflow-hidden bg-[#FBFBFB]">
+      <div className={`relative overflow-hidden bg-[#FBFBFB] ${layoutClasses.image}`}>
         <Link 
           to={`/product/${product.sku || product.slug || 'undefined'}`}
           className="block w-full h-full"
@@ -119,53 +122,53 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onClick
         </Link>
         
         {/* Floating Badges */}
-        <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
+        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 flex flex-col items-end gap-1 sm:gap-2 z-10 max-w-[85%]">
           {product.badge_text && (
-            <span className="bg-white/95 text-primaryDark text-[10px] font-black px-3 py-1 rounded-full shadow-sm whitespace-nowrap">
+            <span className="bg-white/95 text-primaryDark text-[9px] sm:text-[10px] font-black px-2 sm:px-3 py-0.5 sm:py-1 rounded-full shadow-sm truncate max-w-full">
               {product.badge_text}
             </span>
           )}
           {product.isNew && (
-            <span className="bg-primaryDark text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest shadow-sm">جديد</span>
+            <span className="bg-primaryDark text-white text-[9px] sm:text-[10px] font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase tracking-widest shadow-sm">جديد</span>
           )}
           {product.discountPrice && (
-            <span className="bg-accent text-primaryDark text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest shadow-sm">خصم</span>
+            <span className="bg-accent text-primaryDark text-[9px] sm:text-[10px] font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase tracking-widest shadow-sm">خصم</span>
           )}
         </div>
 
         {/* Quick Actions Overlay */}
         <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
         
-        <div className="absolute top-4 left-4 flex flex-col gap-2 translate-x-[-10px] opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-500 z-10">
+        <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex flex-col gap-1.5 sm:gap-2 translate-x-[-10px] opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-500 z-10">
           <button 
             onClick={(e) => { e.stopPropagation(); onToggleWishlist?.(); }}
-            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg backdrop-blur-md ${
+            className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg backdrop-blur-md ${
               isWishlisted ? 'bg-red-500 text-white' : 'bg-white/90 text-primaryDark hover:bg-red-500 hover:text-white'
             }`}
           >
-            <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
+            <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${isWishlisted ? 'fill-current' : ''}`} />
           </button>
           
           <button 
             onClick={(e) => { e.stopPropagation(); onQuickView?.(product); }}
-            className="w-10 h-10 rounded-full bg-white/90 text-primaryDark flex items-center justify-center shadow-lg backdrop-blur-md hover:bg-accent hover:text-primaryDark transition-all duration-300"
+            className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/90 text-primaryDark flex items-center justify-center shadow-lg backdrop-blur-md hover:bg-accent hover:text-primaryDark transition-all duration-300"
           >
-            <Eye className="w-5 h-5" />
+            <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
 
           <button 
             onClick={handleShare}
-            className="w-10 h-10 rounded-full bg-white/90 text-primaryDark flex items-center justify-center shadow-lg backdrop-blur-md hover:bg-accent hover:text-primaryDark transition-all duration-300"
+            className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/90 text-primaryDark flex items-center justify-center shadow-lg backdrop-blur-md hover:bg-accent hover:text-primaryDark transition-all duration-300"
           >
-            <Share2 className="w-5 h-5" />
+            <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
 
         {/* Add to Cart Bar */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500">
+        <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500">
           <button 
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleAddToCart(e); }}
-            className="w-full bg-primaryDark text-white py-4 rounded-2xl font-bold text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-2xl hover:bg-primaryDark/90 transition-colors"
+            className="w-full bg-primaryDark text-white py-2.5 sm:py-4 rounded-xl sm:rounded-2xl font-bold text-[10px] sm:text-xs uppercase tracking-normal sm:tracking-[0.2em] flex items-center justify-center gap-1.5 sm:gap-3 shadow-2xl hover:bg-primaryDark/90 transition-colors"
           >
             <ShoppingBag className="w-4 h-4" />
             أضف للحقيبة
@@ -174,7 +177,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onClick
       </div>
 
       {/* Content Section */}
-      <div className="p-5 flex flex-col flex-grow text-right">
+      <div className={`${layoutClasses.content} flex flex-col flex-grow text-right min-w-0`}>
         {/* Categories & SKU */}
         <div className="flex items-center justify-between gap-2 mb-2.5">
           <div className="flex items-center gap-1.5 flex-wrap">
@@ -204,10 +207,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onClick
         {/* Title */}
         <Link 
           to={`/product/${product.sku || product.slug || 'undefined'}`}
-          className="text-[15px] font-bold text-primaryDark mb-2 line-clamp-2 hover:text-accent transition-colors leading-snug"
+          className="text-[13px] sm:text-[15px] font-bold text-primaryDark mb-2 line-clamp-2 hover:text-accent transition-colors leading-normal"
         >
           {product.name}
         </Link>
+
+        <p className={`text-xs sm:text-sm leading-6 text-gray-400 mb-3 ${layoutClasses.description}`}>
+          {product.description}
+        </p>
 
         {/* Rating */}
         <div className="flex justify-start mb-3">
@@ -221,10 +228,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onClick
               {displayOldPrice.toLocaleString()}
             </span>
           )}
-          <span className="text-[22px] font-black text-primaryDark tracking-tight">
+          <span className="text-[17px] sm:text-[22px] font-black text-primaryDark tracking-tight">
             {displayPrice.toLocaleString()}
           </span>
-          <span className="text-[11px] font-bold text-gray-400 mr-1">ليرة سورية</span>
+          <span className="text-[9px] sm:text-[11px] font-bold text-gray-400 mr-1">ليرة سورية</span>
         </div>
 
 

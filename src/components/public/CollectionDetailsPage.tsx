@@ -64,7 +64,7 @@ const CollectionDetailsPage: React.FC<CollectionDetailsPageProps> = ({
   }
 
   return (
-      <div className="bg-[#FCFBFA] min-h-screen pt-48 lg:pt-56 pb-24" dir="rtl">
+      <div className="bg-[#FCFBFA] min-h-screen page-offset-lg pb-24" dir="rtl">
           {/* Header */}
           <div className="max-w-[1440px] mx-auto px-6 lg:px-12 mb-20 animate-in fade-in duration-700">
               <button 

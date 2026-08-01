@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
+import { toast } from '../utils/toast';
 import { Product } from '../types/index';
 import { useSharedStore } from '../store/useSharedStore';
 import { productService } from '../services/productService';

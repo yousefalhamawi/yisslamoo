@@ -14,6 +14,8 @@ interface ProductPageProps {
   onSelectProduct: (p: Product) => void;
   onQuickView?: (p: Product) => void;
   initialCategory?: string;
+  /** نص البحث القادم من الرابط ?search= */
+  initialSearch?: string;
   onCategoryChange?: (category: string) => void;
   wishlist: string[];
   onToggleWishlist: (id: string) => void;
@@ -26,11 +28,12 @@ const ProductPage: React.FC<ProductPageProps> = ({
   onSelectProduct, 
   onQuickView,
   initialCategory = 'الكل',
+  initialSearch = '',
   onCategoryChange,
   wishlist,
   onToggleWishlist
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('default');
@@ -118,7 +121,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
   }, [searchQuery, selectedCategory, selectedSubCategory, sortBy, priceRange, products, categoryList]);
 
   return (
-    <div className="bg-[#FCFBFA] min-h-screen pt-48 lg:pt-56 pb-24">
+    <div className="bg-[#FCFBFA] min-h-screen page-offset-lg pb-24">
       <div className="max-w-[1440px] mx-auto px-6 lg:px-12">
         {/* Editorial Header */}
         <div className="relative mb-24 text-center">
@@ -402,6 +405,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   <div key={`${product.id}-${idx}`} className="h-full">
                     <ProductCard 
                       product={product}
+                      layout={viewMode}
                       onAddToCart={onAddToCart}
                       onClick={onSelectProduct}
                       onQuickView={onQuickView}
@@ -652,4 +656,3 @@ const ProductPage: React.FC<ProductPageProps> = ({
 };
 
 export default ProductPage;
-

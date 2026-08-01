@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
+import { toast } from '../utils/toast';
 import { Coupon } from '../types/admin';
 import { couponService } from '../services/couponService';
 import { checkSupabaseConfig } from '../supabase';
@@ -23,7 +23,7 @@ export const useCoupons = () => {
       setCoupons(data);
     } catch (err) {
       setError('Failed to fetch coupons');
-      toast.error('فشل في تحميل الكوبونات');
+      toast.loadError();
     } finally {
       setLoading(false);
     }

@@ -10,7 +10,7 @@ interface AdminLoginProps {
 
 const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onSignUp }) => {
   const [password, setPassword] = useState('');
-  const [email, setEmail] = useState('admin@yaslamo.com');
+  const [email, setEmail] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
