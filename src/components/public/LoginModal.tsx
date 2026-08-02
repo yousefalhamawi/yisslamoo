@@ -7,6 +7,7 @@ import { validateEmail, validatePassword, validatePhone } from '../../utils/vali
 import hotToast from '../../utils/toast';
 import { FORM_SUBMIT, formInput } from '../../constants/formStyles';
 import { supabase } from '../../supabase';
+import { X } from 'lucide-react';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -205,7 +206,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
                 onClick={onClose}
                 className="absolute top-6 left-6 w-10 h-10 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center text-white z-20 hover:bg-white/20 transition-all border border-white/20"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+                <X className="w-5 h-5" strokeWidth={2} />
               </button>
 
               {/* Header */}

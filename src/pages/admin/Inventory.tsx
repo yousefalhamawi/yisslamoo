@@ -46,9 +46,9 @@ const InventoryPage: React.FC = () => {
   }
 
   const totalStock = products.reduce((acc, p) => acc + p.stock, 0);
-  const lowStockCount = products.filter(p => p.stock > 0 && p.stock <= 10).length;
-  const outOfStockCount = products.filter(p => p.stock === 0).length;
-  const healthyStockCount = products.filter(p => p.stock > 10).length;
+  const lowStockCount = products.filter(p => !p.is_made_to_order && p.stock > 0 && p.stock <= 10).length;
+  const outOfStockCount = products.filter(p => !p.is_made_to_order && p.stock === 0).length;
+  const healthyStockCount = products.filter(p => !p.is_made_to_order && p.stock > 10).length;
 
   return (
     <div className="space-y-6">
@@ -122,7 +122,7 @@ const InventoryPage: React.FC = () => {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {filteredInventory.map((item) => {
-              const status = item.stock === 0 ? 'out' : item.stock <= 10 ? 'low' : 'ok';
+              const status = item.is_made_to_order ? 'made-to-order' : item.stock === 0 ? 'out' : item.stock <= 10 ? 'low' : 'ok';
               return (
                 <tr key={item.id} className="hover:bg-slate-50 transition-all">
                   <td className="px-6 py-4">
@@ -134,34 +134,39 @@ const InventoryPage: React.FC = () => {
                   <td className="px-6 py-4">
                     <span className={cn(
                       "text-sm font-black",
-                      status !== 'ok' ? "text-amber-600" : "text-slate-700"
+                      status === 'made-to-order' ? "text-violet-600" : status !== 'ok' ? "text-amber-600" : "text-slate-700"
                     )}>
-                      {item.stock} قطعة
+                      {status === 'made-to-order' ? 'حسب الطلب' : `${item.stock} قطعة`}
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm font-bold text-slate-500">10 قطعة</span>
+                    <span className="text-sm font-bold text-slate-500">{status === 'made-to-order' ? '—' : '10 قطعة'}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className={cn(
                       "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 w-fit",
+                      status === 'made-to-order' ? "bg-violet-50 text-violet-600" :
                       status === 'ok' ? "bg-emerald-50 text-emerald-600" : 
                       status === 'low' ? "bg-amber-50 text-amber-600" : "bg-red-50 text-red-600"
                     )}>
-                      {status === 'ok' ? <CheckCircle2 className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
-                      {status === 'ok' ? 'متوفر' : status === 'low' ? 'منخفض' : 'نافذ'}
+                      {status === 'made-to-order' || status === 'ok' ? <CheckCircle2 className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
+                      {status === 'made-to-order' ? 'حسب الطلب' : status === 'ok' ? 'متوفر' : status === 'low' ? 'منخفض' : 'نافذ'}
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <button 
-                      onClick={() => {
-                        setEditingProduct(item);
-                        setNewStock(item.stock);
-                      }}
-                      className="p-2 hover:bg-indigo-50 rounded-lg text-slate-400 hover:text-indigo-600 transition-all"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
+                    {status === 'made-to-order' ? (
+                      <span className="text-[10px] font-bold text-slate-400">لا يحتاج مخزوناً</span>
+                    ) : (
+                      <button 
+                        onClick={() => {
+                          setEditingProduct(item);
+                          setNewStock(item.stock);
+                        }}
+                        className="p-2 hover:bg-indigo-50 rounded-lg text-slate-400 hover:text-indigo-600 transition-all"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </td>
                 </tr>
               );

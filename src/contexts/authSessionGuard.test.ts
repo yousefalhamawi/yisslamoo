@@ -31,4 +31,12 @@ describe('createAuthSessionGuard', () => {
     expect(guard.recordAuthEvent('SIGNED_OUT')).toBe(true);
     expect(guard.recordAuthEvent('INITIAL_SESSION')).toBe(false);
   });
+
+  it('keeps a confirmed user when a non-sign-out event has no session', () => {
+    const guard = createAuthSessionGuard();
+
+    expect(guard.recordAuthEvent('SIGNED_IN', true)).toBe(true);
+    expect(guard.recordAuthEvent('TOKEN_REFRESHED', false)).toBe(false);
+    expect(guard.recordAuthEvent('SIGNED_OUT', false)).toBe(true);
+  });
 });

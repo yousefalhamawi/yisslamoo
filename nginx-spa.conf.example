@@ -1,0 +1,17 @@
+# Include this inside the Nginx server block that serves the Vite dist folder.
+# Replace /var/www/yislmoo/dist with the real folder you uploaded.
+
+root /var/www/yislmoo/dist;
+index index.html;
+
+# Serve real files directly and send every client-side route to React.
+location / {
+  try_files $uri $uri/ /index.html;
+}
+
+# Do not return the React app for a missing JavaScript, CSS, or image file.
+location /assets/ {
+  try_files $uri =404;
+  expires 1y;
+  add_header Cache-Control "public, immutable";
+}

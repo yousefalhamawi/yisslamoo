@@ -13,6 +13,7 @@ import { AdminProfile } from '../../services/profileService';
 import { ImageUpload } from '../../components/admin/ImageUpload';
 import { uploadService } from '../../services/uploadService';
 import { toast } from '../../utils/toast';
+import { getAdminAvatarSrc } from '../../utils/adminAvatar';
 
 const ProfilePage: React.FC = () => {
   const { profile, loading, updateProfile } = useProfile();
@@ -79,7 +80,7 @@ const ProfilePage: React.FC = () => {
         <div className="md:col-span-1 space-y-6">
           <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 text-center">
             <ImageUpload 
-              value={formData.avatar || ''}
+              value={getAdminAvatarSrc(formData.avatar)}
               onChange={(val) => setFormData({...formData, avatar: val as string})}
               onFilesChange={(files) => setImageFile(files[0])}
               variant="circular"

@@ -3,6 +3,7 @@ import React from 'react';
 
 /** وضع التسعير: تلقائي (USD × سعر الصرف) أو يدوي (سعر ثابت بالليرة) */
 export type PricingMode = 'auto' | 'manual';
+export type HomeProductSection = 'offers' | 'recommended' | 'new' | 'trending' | 'bestsellers' | 'all';
 
 import { Address } from './admin';
 
@@ -32,6 +33,10 @@ export interface Product {
   longDescription?: string;
   features: { name: string; value: string }[];
   stock: number;
+  /** المنتج يُحضّر عند الطلب ولا يرتبط بكمية مخزون متاحة. */
+  is_made_to_order?: boolean;
+  /** القسم الوحيد الذي يظهر فيه المنتج ضمن تبويبات الصفحة الرئيسية. */
+  home_section?: HomeProductSection | null;
   isTrending?: boolean;
   isNew?: boolean;
   discountPrice?: number;

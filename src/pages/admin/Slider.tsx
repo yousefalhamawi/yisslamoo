@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit2, Trash2, X, Image as ImageIcon, Upload } from 'lucide-react';
-import { useSharedStore } from '../../store/useSharedStore';
+import { useHeroSlides } from '../../hooks/useHeroSlides';
 import { HeroSlide } from '../../types/admin';
 import { toast } from '../../utils/toast';
 import { uploadService } from '../../services/uploadService';
 
 const SliderPage: React.FC = () => {
-  const { heroSlides, addHeroSlide, updateHeroSlide, deleteHeroSlide } = useSharedStore();
+  const { heroSlides, loading, addHeroSlide, updateHeroSlide, deleteHeroSlide } = useHeroSlides();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSlide, setEditingSlide] = useState<HeroSlide | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -66,31 +66,34 @@ const SliderPage: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title || !formData.image) {
       toast.error('يرجى ملء الحقول المطلوبة');
       return;
     }
 
-    if (editingSlide) {
-      updateHeroSlide(editingSlide.id, formData);
-      toast.success('تم تحديث السلايد بنجاح');
-    } else {
-      const newSlide: HeroSlide = {
-        ...formData as HeroSlide,
-        id: `slide-${Date.now()}`
-      };
-      addHeroSlide(newSlide);
-      toast.success('تم إضافة السلايد بنجاح');
+    // `id` تولّده قاعدة البيانات — نستبعده من الحمولة المرسلة
+    const { id: _ignored, ...payload } = formData as HeroSlide;
+
+    try {
+      if (editingSlide) {
+        await updateHeroSlide(editingSlide.id, payload);
+      } else {
+        await addHeroSlide(payload);
+      }
+      setIsModalOpen(false);
+    } catch {
+      // الهوك يعرض رسالة الخطأ؛ نُبقي النافذة مفتوحة ليعيد الأدمن المحاولة
     }
-    setIsModalOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('هل أنت متأكد من حذف هذا السلايد؟')) {
-      deleteHeroSlide(id);
-      toast.success('تم حذف السلايد');
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('هل أنت متأكد من حذف هذا السلايد؟')) return;
+    try {
+      await deleteHeroSlide(id);
+    } catch {
+      // الهوك يتكفّل بعرض الخطأ
     }
   };
 

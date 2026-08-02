@@ -18,6 +18,7 @@ import {
 import { cn } from '../../utils/cn';
 import { ADMIN_NAV_ITEMS, AdminPageState } from '../../types/admin';
 import { useAdminNotifications } from '../../hooks/useAdminNotifications';
+import { ADMIN_HEADER_AVATAR } from '../../utils/adminAvatar';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -207,7 +208,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, currentPage, onNavi
                   <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">مدير المتجر</p>
                 </div>
                 <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 overflow-hidden">
-                  <img src="/img/logo/logo.png" alt="Admin" className="w-full h-full object-contain p-1" />
+                  <img src={ADMIN_HEADER_AVATAR} alt="Admin" className="w-full h-full object-contain p-1" />
                 </div>
               </button>
 

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { ShoppingBag, ChevronRight } from 'lucide-react';
 import { useCollections } from '../../hooks/useCollections';
 import { useSharedStore } from '../../store/useSharedStore';
+import { isProductAvailableForStore } from '../../utils/productAvailability';
 import ProductCard from './ProductCard';
 import { Product } from '../../types/index';
 
@@ -36,7 +37,10 @@ const CollectionDetailsPage: React.FC<CollectionDetailsPageProps> = ({
     if (!collection) return [];
     // If the collection object has product IDs
     if (collection.products && Array.isArray(collection.products)) {
-        return products.filter(p => collection.products.includes(p.id));
+        // نُخفي المنتجات النافدة فقط، ونبقي منتجات «حسب الطلب» متاحة.
+        return products.filter(
+          p => collection.products.includes(p.id) && isProductAvailableForStore(p)
+        );
     }
     return [];
   }, [collection, products]);

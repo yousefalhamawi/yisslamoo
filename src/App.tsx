@@ -29,7 +29,6 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import CollectionDetailsPage from './components/public/CollectionDetailsPage';
 import OurStoryPage from './components/public/OurStoryPage';
 import PoliciesPage from './components/public/PoliciesPage';
-import { PRODUCTS } from './mockData/initialData';
 import { Product, User } from './types/index';
 import { SOCIAL_LINKS } from './constants/socialLinks';
 import {
@@ -59,6 +58,7 @@ type PageState = 'home' | 'shop' | 'details' | 'wishlist' | 'collections' | 'che
 
 import { checkSupabaseConfig } from './supabase';
 import { useSharedStore } from './store/useSharedStore';
+import { ArrowLeft } from 'lucide-react';
 import { Order, Customer } from './types/admin';
 import { orderService } from './services/orderService';
 import { customerService } from './services/customerService';
@@ -66,6 +66,8 @@ import { productService } from './services/productService';
 import { exchangeRateService } from './services/exchangeRateService';
 import { toast as hotToast } from './utils/toast';
 import { storage } from './services/storage';
+import { getCustomerSessionAction } from './utils/customerSessionPolicy';
+import { isProductAvailableForStore } from './utils/productAvailability';
 
 import { categoryService } from './services/categoryService';
 import { reviewService } from './services/reviewService';
@@ -121,13 +123,15 @@ const ShopWrapper: React.FC<{
 
 const ProductDetailsWrapper: React.FC<{
   products: Product[],
+  /** القائمة المتوفرة فقط — للمنتجات المقترحة، حتى لا نقترح نافداً */
+  availableProducts: Product[],
   loading: boolean,
   addToCart: (p: Product) => void,
   handleBuyNow: (p: Product) => void,
   wishlist: string[],
   toggleWishlist: (id: string) => void,
   navigateToProduct: (p: Product) => void
-}> = ({ products, loading, addToCart, handleBuyNow, wishlist, toggleWishlist, navigateToProduct }) => {
+}> = ({ products, availableProducts, loading, addToCart, handleBuyNow, wishlist, toggleWishlist, navigateToProduct }) => {
   const { productSlug } = useParams<{ productSlug: string }>();
   const navigate = useNavigate();
 
@@ -164,7 +168,7 @@ const ProductDetailsWrapper: React.FC<{
   return (
     <ProductDetails
       product={product}
-      allProducts={products}
+      allProducts={availableProducts}
       onAddToCart={addToCart}
       onBuyNow={handleBuyNow}
       onBack={() => navigate('/shop')}
@@ -211,30 +215,28 @@ const App: React.FC = () => {
 
       // 1. Fetch public data: products, categories, reviews
       try {
-        const [productsData, categoriesData, reviewsData] = await Promise.all([
-          productService.getAll().catch(err => {
-            console.error('Failed to fetch products from Supabase, using mock fallback:', err);
-            return [];
-          }),
-          categoryService.getAll().catch(err => {
-            console.error('Failed to fetch categories from Supabase, using mock fallback:', err);
-            return [];
-          }),
-          reviewService.getAll().catch(err => {
-            console.error('Failed to fetch reviews from Supabase, using mock fallback:', err);
-            return [];
-          })
+        const [productsResult, categoriesResult, reviewsResult, ordersResult, customersResult] = await Promise.allSettled([
+          productService.getAll(),
+          categoryService.getAll(),
+          reviewService.getAll(),
+          orderService.getAll(),
+          customerService.getAll(),
         ]);
 
-        if (productsData && productsData.length > 0) {
-          storeSetProducts(productsData);
-        }
-        if (categoriesData && categoriesData.length > 0) {
-          setCategories(categoriesData);
-        }
-        if (reviewsData && reviewsData.length > 0) {
-          storeSetReviews(reviewsData);
-        }
+        if (productsResult.status === 'fulfilled') storeSetProducts(productsResult.value);
+        else console.error('Failed to fetch products from Supabase:', productsResult.reason);
+
+        if (categoriesResult.status === 'fulfilled') setCategories(categoriesResult.value);
+        else console.error('Failed to fetch categories from Supabase:', categoriesResult.reason);
+
+        if (reviewsResult.status === 'fulfilled') storeSetReviews(reviewsResult.value);
+        else console.error('Failed to fetch reviews from Supabase:', reviewsResult.reason);
+
+        if (ordersResult.status === 'fulfilled') storeSetOrders(ordersResult.value);
+        else console.error('Failed to fetch orders from Supabase:', ordersResult.reason);
+
+        if (customersResult.status === 'fulfilled') storeSetCustomers(customersResult.value);
+        else console.error('Failed to fetch customers from Supabase:', customersResult.reason);
       } finally {
         setIsInitialDataLoaded(true);
       }
@@ -335,19 +337,18 @@ const App: React.FC = () => {
     const enforceCustomerSession = async () => {
       const rememberMe = localStorage.getItem('yaslamo_remember_me') === 'true';
       const loginTimeStr = localStorage.getItem('yaslamo_login_time');
-      const sessionActive = sessionStorage.getItem('yaslamo_session_active') === 'true';
+      const loginTime = loginTimeStr ? parseInt(loginTimeStr, 10) : null;
+      const action = getCustomerSessionAction({
+        rememberMe,
+        loginTime: Number.isNaN(loginTime) ? null : loginTime,
+        now: Date.now(),
+      });
 
-      if (rememberMe && loginTimeStr) {
-        const loginTime = parseInt(loginTimeStr, 10);
-        if (Date.now() - loginTime > 15 * 24 * 60 * 60 * 1000) { // 15 days
-          handleLogout();
-        } else {
-          sessionStorage.setItem('yaslamo_session_active', 'true');
-        }
-      } else if (!rememberMe && !sessionActive) {
-        // Session not remembered and browser was restarted
+      if (action === 'sign_out') {
         handleLogout();
       } else {
+        // sessionStorage is unique per tab. It cannot be used as a reason to
+        // invalidate the shared Supabase session in another tab.
         sessionStorage.setItem('yaslamo_session_active', 'true');
       }
     };
@@ -361,6 +362,14 @@ const App: React.FC = () => {
 
   // Use products from store
   const products = storeProducts;
+
+  // منتجات القوائم العامة: نخفي النافد فقط، ونُبقي منتجات «حسب الطلب» ظاهرة.
+  // صفحة تفاصيل المنتج تستقبل القائمة الكاملة، فالوصول المباشر برابط
+  // منتج نافد يبقى ممكناً مع عرض حالته، لكنه لا يظهر ضمن التصفّح.
+  const availableProducts = useMemo(
+    () => products.filter(isProductAvailableForStore),
+    [products]
+  );
 
   useEffect(() => {
     const loadSavedData = async () => {
@@ -418,6 +427,8 @@ const App: React.FC = () => {
       final_price_syp: checkoutData.final_price_syp ?? total,
       items: cartItems.map(item => ({
         id: item.cartId || `item-${Math.random().toString(36).substring(2, 9)}`,
+        // معرّف المنتج الحقيقي — الخادم يجلب به السعر من جدول products
+        productId: item.id,
         name: item.name,
         quantity: item.quantity || 1,
         price: item.price,
@@ -432,13 +443,14 @@ const App: React.FC = () => {
     const loadingToast = hotToast.loading('جاري تأكيد طلبك...');
 
     try {
-      // Save to local store for immediate UI update
-      storeAddOrder(newOrder);
+      // الخادم هو مصدر الحقيقة للمبالغ: نحفظ أولاً ثم نعرض ما أعاده.
+      // بهذا لا يظهر طلب وهمي محلياً إذا رفض الخادم، ولا يُعرض إجمالي
+      // محسوب في المتصفح قد يخالف الإجمالي المخزَّن فعلياً.
+      const savedOrder = checkSupabaseConfig()
+        ? await orderService.create(newOrder)
+        : newOrder;
 
-      // Save to Supabase
-      if (checkSupabaseConfig()) {
-        await orderService.create(newOrder);
-      }
+      storeAddOrder(savedOrder);
 
       // Update customer stats if logged in
       if (user) {
@@ -446,7 +458,7 @@ const App: React.FC = () => {
         if (customer) {
           storeUpdateCustomer(customer.id, {
             ordersCount: customer.ordersCount + 1,
-            totalSpent: customer.totalSpent + total,
+            totalSpent: customer.totalSpent + (savedOrder.total ?? total),
             lastOrderDate: new Date().toISOString().split('T')[0]
           });
         }
@@ -560,7 +572,7 @@ const App: React.FC = () => {
       const next = isRemoving ? prev.filter(i => i !== id) : [...prev, id];
       storage.setItem('yaslamo_wishlist', next);
 
-      const product = PRODUCTS.find(p => p.id === id);
+      const product = products.find(p => p.id === id);
       if (product) {
         addNotification({
           title: isRemoving ? 'تمت الإزالة من المفضلة' : 'تمت الإضافة للمفضلة',
@@ -660,8 +672,8 @@ const App: React.FC = () => {
           <motion.div key="home" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <Hero />
             <CategoryCircles />
-            <ProductTabs 
-              products={products}
+            <ProductTabs
+              products={availableProducts}
               onAddToCart={addToCart}
               onSelectProduct={navigateToProduct}
               onQuickView={handleQuickView}
@@ -704,7 +716,7 @@ const App: React.FC = () => {
               <div className="container mx-auto px-6">
                 <div className="flex items-end justify-between mb-24 text-right">
                   <div><span className="text-primary font-bold uppercase tracking-widest text-xs block mb-4">مختارات يسلمو</span><h2 className="text-4xl lg:text-5xl font-bold text-primaryDark tracking-tighter">هدايا منتقاة بعناية</h2></div>
-                  <button onClick={() => navigateToShop()} className="text-primary font-bold flex items-center gap-3 hover:gap-6 transition-all hidden md:flex text-xl"><span>تصفح الكل</span><svg className="w-6 h-6 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg></button>
+                  <button onClick={() => navigateToShop()} className="text-primary font-bold flex items-center gap-3 hover:gap-6 transition-all hidden md:flex text-xl"><span>تصفح الكل</span><ArrowLeft className="w-6 h-6" strokeWidth={2} /></button>
                 </div>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8 items-stretch">
                   {products.slice(0, 8).map((product, idx) => (
@@ -728,9 +740,7 @@ const App: React.FC = () => {
 
                 <a href={SOCIAL_LINKS.whatsappChannel} target="_blank" rel="noopener noreferrer">
                   <button className="px-8 md:px-10 py-3.5 bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold rounded-2xl shadow-2xl shadow-[#25D366]/20 hover:scale-[1.02] active:scale-95 transition-all text-base flex items-center justify-center gap-2.5 mx-auto">
-                    <svg className="w-5 h-5 fill-current" viewBox="0 0 16 16">
-                      <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
-                    </svg>
+                    <IconWhatsapp className="w-5 h-5" />
                     <span>إنضم الى عائلتنا على الواتس اب</span>
                   </button>
                 </a>
@@ -738,9 +748,9 @@ const App: React.FC = () => {
             </section>
           </motion.div>
         } />
-        <Route path="/shop" element={<ShopWrapper products={products} categories={categories} addToCart={addToCart} navigateToProduct={navigateToProduct} handleQuickView={handleQuickView} wishlist={wishlist} toggleWishlist={toggleWishlist} />} />
-        <Route path="/category/:categorySlug" element={<ShopWrapper products={products} categories={categories} addToCart={addToCart} navigateToProduct={navigateToProduct} handleQuickView={handleQuickView} wishlist={wishlist} toggleWishlist={toggleWishlist} />} />
-        <Route path="/product/:productSlug" element={<ProductDetailsWrapper products={products} loading={!isInitialDataLoaded} addToCart={addToCart} handleBuyNow={handleBuyNow} wishlist={wishlist} toggleWishlist={toggleWishlist} navigateToProduct={navigateToProduct} />} />
+        <Route path="/shop" element={<ShopWrapper products={availableProducts} categories={categories} addToCart={addToCart} navigateToProduct={navigateToProduct} handleQuickView={handleQuickView} wishlist={wishlist} toggleWishlist={toggleWishlist} />} />
+        <Route path="/category/:categorySlug" element={<ShopWrapper products={availableProducts} categories={categories} addToCart={addToCart} navigateToProduct={navigateToProduct} handleQuickView={handleQuickView} wishlist={wishlist} toggleWishlist={toggleWishlist} />} />
+        <Route path="/product/:productSlug" element={<ProductDetailsWrapper products={products} availableProducts={availableProducts} loading={!isInitialDataLoaded} addToCart={addToCart} handleBuyNow={handleBuyNow} wishlist={wishlist} toggleWishlist={toggleWishlist} navigateToProduct={navigateToProduct} />} />
         <Route path="/collection/:collectionId" element={
           <CollectionDetailsPage
             onAddToCart={addToCart}
@@ -915,9 +925,7 @@ const App: React.FC = () => {
                 <div className="flex flex-col gap-5 mt-2">
                   <div className="flex items-center gap-3 justify-start">
                     <div className="w-9 h-9 rounded-xl bg-gray-100 border border-gray-200/60 flex items-center justify-center text-[#D4AF37] shrink-0">
-                      <svg className="w-4 h-4 fill-current" viewBox="0 0 16 16">
-                        <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
-                      </svg>
+                      <IconWhatsapp className="w-4 h-4" />
                     </div>
                     <div className="text-right">
                       <p className="text-[10px] text-gray-500 font-bold leading-none mb-1">الدعم الفني والتقني</p>
@@ -927,9 +935,7 @@ const App: React.FC = () => {
 
                   <div className="flex items-center gap-3 justify-start">
                     <div className="w-9 h-9 rounded-xl bg-gray-100 border border-gray-200/60 flex items-center justify-center text-[#D4AF37] shrink-0">
-                      <svg className="w-4 h-4 fill-current" viewBox="0 0 16 16">
-                        <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
-                      </svg>
+                      <IconWhatsapp className="w-4 h-4" />
                     </div>
                     <div className="text-right">
                       <p className="text-[10px] text-gray-500 font-bold leading-none mb-1">الشكاوى والاقتراحات</p>

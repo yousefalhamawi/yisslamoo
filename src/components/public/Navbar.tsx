@@ -4,8 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { User } from '../../types/index';
 import { useNotifications } from '../../contexts/NotificationContext';
-import { Bell, LucideIcon, CheckCircle2, AlertCircle, Info, ShoppingCart, Heart, Package, Trash2, CheckCheck, X, House, CircleUserRound, Grid2x2, ShoppingBag } from 'lucide-react';
+import { Bell, LucideIcon, CheckCircle2, AlertCircle, Info, ShoppingCart, Heart, Package, Trash2, CheckCheck, X, House, CircleUserRound, Grid2x2, ShoppingBag, Search, Menu, LogIn, ChevronLeft } from 'lucide-react';
 import { shouldUseLightNavbarText } from '../../utils/navbarTheme';
+import { getProductSearchPath } from '../../utils/productSearch';
 
 interface NavbarProps {
   cartCount: number;
@@ -36,24 +37,18 @@ const Navbar: React.FC<NavbarProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
 
   /**
-   * أول ضغطة تفتح الحقل، والثانية ترسل البحث.
    * البحث يمرّ عبر الرابط (/shop?search=) ليبقى قابلاً للمشاركة والرجوع إليه.
    */
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!isSearchOpen) {
-      setIsSearchOpen(true);
-      return;
-    }
-
-    const query = searchTerm.trim();
-    if (!query) {
+    const searchPath = getProductSearchPath(searchTerm);
+    if (!searchPath) {
       setIsSearchOpen(false);
       return;
     }
 
-    navigate(`/shop?search=${encodeURIComponent(query)}`);
+    navigate(searchPath);
     setIsSearchOpen(false);
     setIsMobileMenuOpen(false);
   };
@@ -125,9 +120,7 @@ const Navbar: React.FC<NavbarProps> = ({
               <div className="bg-accent text-primaryDark px-2 py-0.5 rounded-lg text-[9px] lg:text-[10px] font-bold min-w-[18px] text-center">
                 {cartCount}
               </div>
-              <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-              </svg>
+              <ShoppingBag className="w-5 h-5 lg:w-6 lg:h-6" strokeWidth={2} />
             </motion.button>
             
             {/* Notification Bell */}
@@ -282,9 +275,7 @@ const Navbar: React.FC<NavbarProps> = ({
                       ? 'bg-white/10 text-white group-hover:bg-white group-hover:text-primary'
                       : 'bg-primary/5 text-primary group-hover:bg-primary group-hover:text-white'
                   }`}>
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
+                    <CircleUserRound className="w-6 h-6" strokeWidth={2} />
                   </div>
                 </button>
                 
@@ -332,9 +323,7 @@ const Navbar: React.FC<NavbarProps> = ({
                     ? 'bg-white/10 text-white group-hover:bg-white group-hover:text-primary' 
                     : 'bg-primary/5 text-primary group-hover:bg-primary group-hover:text-white'
                 }`}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                  </svg>
+                  <LogIn className="w-5 h-5" strokeWidth={2} />
                 </div>
               </motion.button>
             )}
@@ -370,42 +359,14 @@ const Navbar: React.FC<NavbarProps> = ({
                 </Link>
               ))}
               
-              <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
-                <AnimatePresence initial={false}>
-                  {isSearchOpen && (
-                    <motion.input
-                      key="navbar-search"
-                      initial={{ width: 0, opacity: 0 }}
-                      animate={{ width: 190, opacity: 1 }}
-                      exit={{ width: 0, opacity: 0 }}
-                      transition={{ duration: 0.25 }}
-                      autoFocus
-                      type="search"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Escape' && setIsSearchOpen(false)}
-                      placeholder="ابحث عن منتج..."
-                      aria-label="ابحث عن منتج"
-                      className={`h-11 px-4 rounded-2xl text-sm text-right outline-none border transition-colors ${
-                        useLightText
-                          ? 'bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/60'
-                          : 'bg-primary/5 border-primary/10 text-primaryDark placeholder:text-gray-400 focus:border-primary'
-                      }`}
-                    />
-                  )}
-                </AnimatePresence>
-
-                <button
-                  type={isSearchOpen ? 'submit' : 'button'}
-                  onClick={() => !isSearchOpen && setIsSearchOpen(true)}
-                  aria-label={isSearchOpen ? 'ابحث' : 'فتح البحث'}
-                  className={`p-3 rounded-2xl transition-all ${useLightText ? 'bg-white/10 hover:bg-white hover:text-primary text-white' : 'bg-primary/5 hover:bg-primary hover:text-white text-primary'}`}
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </button>
-              </form>
+              <button
+                type="button"
+                onClick={() => setIsSearchOpen(true)}
+                aria-label="فتح البحث"
+                className={`p-3 rounded-2xl transition-all ${useLightText ? 'bg-white/10 hover:bg-white hover:text-primary text-white' : 'bg-primary/5 hover:bg-primary hover:text-white text-primary'}`}
+              >
+                <Search className="w-6 h-6" strokeWidth={2} />
+              </button>
             </div>
 
             {/* زر القائمة للموبايل */}
@@ -414,13 +375,63 @@ const Navbar: React.FC<NavbarProps> = ({
               onClick={() => setIsMobileMenuOpen(true)}
               className={`lg:hidden w-12 h-12 flex items-center justify-center rounded-xl transition-colors ${useLightText ? 'text-white bg-white/10' : 'text-primary bg-primary/5'}`}
             >
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
+              <Menu className="w-7 h-7" strokeWidth={2} />
             </motion.button>
           </div>
         </nav>
       </header>
+
+      {/* بحث واضح فوق الصفحة حتى لا يختفي بين عناصر الهيدر في الشاشات الضيقة. */}
+      <AnimatePresence>
+        {isSearchOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSearchOpen(false)}
+            className="fixed inset-0 z-[300] bg-primaryDark/35 backdrop-blur-sm p-5 flex items-start justify-center pt-28 sm:pt-36"
+          >
+            <motion.form
+              initial={{ opacity: 0, y: -16, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -16, scale: 0.98 }}
+              transition={{ duration: 0.2 }}
+              onSubmit={handleSearchSubmit}
+              onClick={(event) => event.stopPropagation()}
+              data-testid="navbar-search-dialog"
+              className="w-full max-w-2xl rounded-3xl bg-white p-3 shadow-2xl"
+            >
+              <div className="flex items-center gap-3" dir="rtl">
+                <input
+                  autoFocus
+                  type="search"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  onKeyDown={(event) => event.key === 'Escape' && setIsSearchOpen(false)}
+                  placeholder="ابحث عن منتج، ماركة أو فئة..."
+                  aria-label="ابحث عن منتج"
+                  className="min-w-0 flex-1 h-14 rounded-2xl bg-gray-50 border border-gray-100 px-5 text-right text-sm font-bold text-primaryDark outline-none focus:border-primary focus:bg-white"
+                />
+                <button
+                  type="submit"
+                  data-testid="navbar-search-submit"
+                  className="h-14 shrink-0 rounded-2xl bg-primary px-6 text-sm font-black text-white hover:bg-primaryDark transition-colors"
+                >
+                  بحث
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsSearchOpen(false)}
+                  aria-label="إغلاق البحث"
+                  className="h-12 w-12 shrink-0 rounded-2xl text-gray-400 hover:bg-gray-100 hover:text-primary transition-colors"
+                >
+                  <X className="mx-auto w-5 h-5" />
+                </button>
+              </div>
+            </motion.form>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Mobile Sidebar Menu */}
       <AnimatePresence>
@@ -454,9 +465,7 @@ const Navbar: React.FC<NavbarProps> = ({
                   aria-label="إغلاق القائمة"
                   className="w-11 h-11 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400 shrink-0"
                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <X className="w-5 h-5" strokeWidth={2} />
                  </button>
               </div>
 
@@ -475,9 +484,7 @@ const Navbar: React.FC<NavbarProps> = ({
                   aria-label="ابحث"
                   className="absolute left-1 top-1/2 -translate-y-1/2 w-9 h-9 rounded-lg flex items-center justify-center text-gray-400 hover:text-primary transition-colors"
                 >
-                  <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
+                  <Search className="w-[18px] h-[18px]" strokeWidth={2} />
                 </button>
               </form>
 
@@ -487,9 +494,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 className="mx-4 mt-4 py-3 px-3 rounded-xl bg-accent/15 border border-accent/30 text-primary font-bold text-sm flex items-center justify-between active:scale-[0.99] transition-transform"
               >
                 <div className="flex items-center gap-2">
-                  <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
+                  <Heart className="w-[18px] h-[18px] shrink-0" strokeWidth={2} />
                   <span>قائمة الأمنيات</span>
                 </div>
                 <div className="bg-white min-w-6 h-6 px-1.5 rounded-md text-xs flex items-center justify-center font-bold">
@@ -514,9 +519,7 @@ const Navbar: React.FC<NavbarProps> = ({
                     onClick={() => { setIsMobileMenuOpen(false); onOpenLogin(); }}
                     className="w-full bg-primary text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                    </svg>
+                    <LogIn className="w-4 h-4" strokeWidth={2} />
                     <span>تسجيل الدخول</span>
                   </button>
                 )}
@@ -532,9 +535,7 @@ const Navbar: React.FC<NavbarProps> = ({
                     className="w-full py-3 px-3 rounded-xl hover:bg-primary/5 active:bg-primary/10 text-[15px] font-bold text-primaryDark flex items-center justify-between group"
                   >
                     <span>{link.label}</span>
-                    <svg className="w-4 h-4 text-primary/25 group-hover:text-primary transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
-                    </svg>
+                    <ChevronLeft className="w-4 h-4 text-primary/25 group-hover:text-primary transition-colors shrink-0" strokeWidth={2} />
                   </button>
                 ))}
               </div>

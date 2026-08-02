@@ -58,7 +58,10 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
 ];
 
 export interface OrderItem {
+  /** معرّف سطر السلة — يميّز نسختين من نفس المنتج بنقش مختلف */
   id?: string;
+  /** معرّف المنتج في جدول products — يستخدمه الخادم لجلب السعر */
+  productId?: string;
   name: string;
   quantity: number;
   price: number;
@@ -91,6 +94,9 @@ export interface Order {
   exchange_rate_at_purchase?: number;
   /** السعر الإجمالي بالليرة وقت الطلب (محفوظ لأغراض التدقيق) */
   final_price_syp?: number;
+  /** وقت آخر تعديل للحالة كما يعود من قاعدة البيانات. */
+  updated_at?: string;
+  updatedAt?: string;
 }
 
 export interface Address {

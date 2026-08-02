@@ -6,6 +6,7 @@ import { getColorName, getColorHex } from '../../utils/colorUtils';
 import { computeDisplayPrice } from '../../utils/pricingEngine';
 import { useSharedStore } from '../../store/useSharedStore';
 import { useSettings } from '../../hooks/useSettings';
+import { X, ShoppingBag, Trash2, Minus, Plus, ArrowLeft } from 'lucide-react';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -58,9 +59,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
                 onClick={onClose} 
                 className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-full transition-all group"
               >
-                <svg className="w-5 h-5 text-gray-400 group-hover:text-textMain transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <X className="w-5 h-5 text-gray-400 group-hover:text-textMain transition-colors" strokeWidth={2} />
               </button>
             </div>
 
@@ -103,9 +102,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
               {items.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center p-12 text-center">
                   <div className="w-24 h-24 bg-primary/5 rounded-full flex items-center justify-center mb-6">
-                    <svg className="w-10 h-10 text-primary/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                    </svg>
+                    <ShoppingBag className="w-10 h-10 text-primary/30" strokeWidth={1.5} />
                   </div>
                   <h3 className="text-xl font-bold text-textMain mb-2">الحقيبة فارغة</h3>
                   <p className="text-gray-400 text-sm mb-8">يبدو أنك لم تختر هداياك بعد. ابدأ استكشاف مجموعاتنا الآن.</p>
@@ -149,9 +146,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
                               className="text-gray-300 hover:text-red-500 transition-colors p-1 -mt-1"
                               title="إزالة"
                             >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
+                              <Trash2 className="w-5 h-5" strokeWidth={2} />
                             </button>
                           </div>
                           
@@ -209,9 +204,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
                                 onClick={() => item.cartId && onUpdateQuantity(item.cartId, -1)}
                                 className="w-8 h-8 flex items-center justify-center hover:bg-white rounded-lg transition-all text-gray-500 hover:text-primary"
                               >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M20 12H4" />
-                                </svg>
+                                <Minus className="w-4 h-4" strokeWidth={2.5} />
                               </button>
                               <span className="w-8 text-center text-sm font-black text-primaryDark">
                                 {item.quantity || 1}
@@ -220,9 +213,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
                                 onClick={() => item.cartId && onUpdateQuantity(item.cartId, 1)}
                                 className="w-8 h-8 flex items-center justify-center hover:bg-white rounded-lg transition-all text-gray-500 hover:text-primary"
                               >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
-                                </svg>
+                                <Plus className="w-4 h-4" strokeWidth={2.5} />
                               </button>
                             </div>
                           </div>
@@ -260,9 +251,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
                   className="w-full bg-accent text-primaryDark font-black py-5 rounded-2xl shadow-[0_20px_40px_-10px_rgba(255,214,10,0.4)] hover:shadow-[0_25px_50px_-10px_rgba(255,214,10,0.5)] active:scale-95 transition-all text-xl flex items-center justify-center gap-3"
                 >
                   إتمام عملية الشراء
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
+                  {/* الاتجاه يساراً لأن الواجهة عربية — السهم لليمين كان يشير للخلف */}
+                  <ArrowLeft className="w-6 h-6" strokeWidth={2.5} />
                 </button>
                 
                 <p className="mt-6 text-center text-[10px] text-gray-400 font-bold tracking-widest uppercase">

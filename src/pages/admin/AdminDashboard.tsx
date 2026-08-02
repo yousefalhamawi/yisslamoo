@@ -27,7 +27,7 @@ import { ADMIN_ROLES, hasAdminAccess } from '../../utils/adminAuthorization';
 import { isVerifiedAdminSession } from '../../utils/adminSessionVerification';
 
 const AdminDashboard: React.FC = () => {
-  const { user, loading: authLoading, signIn, signUp, signOut } = useAuth();
+  const { user, loading: authLoading, authEvent, signIn, signUp, signOut } = useAuth();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState<AdminPageState>('dashboard');
@@ -42,11 +42,30 @@ const AdminDashboard: React.FC = () => {
     const checkAdminStatus = async () => {
       if (authLoading) return;
 
+      if (import.meta.env.DEV) {
+        console.info('[Admin auth state]', {
+          hasUser: Boolean(user),
+          authEvent,
+          hasVerifiedAdmin: Boolean(verifiedAdminUserIdRef.current),
+        });
+      }
+
       if (isActive) {
         setIsLoading(true);
       }
 
       if (!user) {
+        // A transient null user from an older callback is not a logout. Only
+        // Supabase's explicit SIGNED_OUT event may return a verified admin to
+        // the login form.
+        if (authEvent !== 'SIGNED_OUT' && verifiedAdminUserIdRef.current) {
+          if (isActive) {
+            setIsAuthenticated(true);
+            setIsLoading(false);
+          }
+          return;
+        }
+
         if (isActive) {
           verifiedAdminUserIdRef.current = null;
           setIsAuthenticated(false);
@@ -118,6 +137,15 @@ const AdminDashboard: React.FC = () => {
       } catch (err) {
         console.error('Failed to verify admin status:', err);
         if (!isActive) return;
+
+        // The explicit login may have completed while this older duplicate
+        // profile request was still in flight. Its failure must not undo a
+        // verified session for the same user.
+        if (isVerifiedAdminSession(verifiedAdminUserIdRef.current, user.id)) {
+          setIsAuthenticated(true);
+          return;
+        }
+
         setIsAuthenticated(false);
         pendingAdminLoginRef.current = false;
         toast.error('فشل التحقق من صلاحيات الإدارة. تحقّق من الاتصال وسياسات RLS.');
@@ -133,7 +161,7 @@ const AdminDashboard: React.FC = () => {
     return () => {
       isActive = false;
     };
-  }, [user, authLoading, isConfigured]);
+  }, [user, authLoading, authEvent, isConfigured]);
 
   const validateForm = (email: string, password: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -175,6 +203,9 @@ const AdminDashboard: React.FC = () => {
       verifiedAdminUserIdRef.current = data.user.id;
       setIsAuthenticated(true);
       setIsLoading(false);
+      if (import.meta.env.DEV) {
+        console.info('[Admin login verified]', { hasVerifiedAdmin: true });
+      }
       if (pendingAdminLoginRef.current) {
         toast.success('تم تسجيل الدخول بنجاح');
         pendingAdminLoginRef.current = false;

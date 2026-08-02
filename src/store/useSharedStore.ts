@@ -4,11 +4,10 @@ import { persist, createJSONStorage, StateStorage } from 'zustand/middleware';
 import { get, set, del } from 'idb-keyval';
 import { Product } from '../types/index';
 import { Order, Customer, Review, HeroSlide } from '../types/admin';
-import { PRODUCTS } from '../mockData/initialData';
-import { MOCK_ORDERS, MOCK_CUSTOMERS, MOCK_REVIEWS } from '../mockData/adminData';
 import { unpoison } from '../utils/unpoison';
 import { DEFAULT_EXCHANGE_RATE } from '../utils/pricingEngine';
 import { exchangeRateService } from '../services/exchangeRateService';
+import { removeLegacyDemoData } from './demoDataCleanup';
 
 // Custom storage using IndexedDB via idb-keyval
 const idbStorage: StateStorage = {
@@ -88,30 +87,11 @@ interface SharedStore {
 export const useSharedStore = create<SharedStore>()(
   persist(
     (set, get) => ({
-      products: PRODUCTS.map(p => unpoison(p)),
-      orders: MOCK_ORDERS,
-      customers: MOCK_CUSTOMERS,
-      reviews: MOCK_REVIEWS,
-      heroSlides: [
-        {
-          id: '1',
-          title: 'يسلمو',
-          subtitle: 'ارتقِ بهداياك مع مجموعاتنا الفاخرة',
-          image: 'https://images.unsplash.com/photo-1607344645866-009c320b63e0?q=80&w=2000',
-          link: '/shop',
-          bgColor: 'bg-[#CEE9FB]',
-          textPosition: 'center-right'
-        },
-        {
-          id: '2',
-          title: 'حصري',
-          subtitle: 'تشكيلة جديدة من الهدايا الخشبية',
-          image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=2000',
-          link: '/category/wooden-gifts',
-          bgColor: 'bg-[#FBE4E4]',
-          textPosition: 'center-right'
-        }
-      ],
+      products: [],
+      orders: [],
+      customers: [],
+      reviews: [],
+      heroSlides: [],
       setProducts: (products) => set({ products: products.map(p => unpoison(p)) }),
       setOrders: (orders) => set({ orders }),
       setCustomers: (customers) => set({ customers }),
@@ -171,6 +151,15 @@ export const useSharedStore = create<SharedStore>()(
     {
       name: 'shared-store',
       storage: createJSONStorage(() => idbStorage),
+      version: 1,
+      migrate: (persistedState) => {
+        const cleanedState = removeLegacyDemoData(persistedState as Partial<SharedStore>);
+
+        return {
+          ...cleanedState,
+          products: (cleanedState.products ?? []).map((product) => unpoison(product)),
+        } as SharedStore;
+      },
       onRehydrateStorage: () => (state) => {
         if (state) {
           // Unpoison all products when rehydrating from storage

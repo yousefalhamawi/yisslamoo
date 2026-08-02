@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom';
 import { getColorName, getColorHex } from '../../utils/colorUtils';
 import { usePricedProduct } from '../../hooks/usePricedProduct';
 import { getRelatedProducts } from '../../utils/relatedProducts';
+import { isProductOutOfStock } from '../../utils/productAvailability';
 import { ChevronLeft, ChevronRight, Share2, Heart, ShoppingBag, Gift, PenTool, MessageSquare, Truck, RotateCcw, ShieldCheck, Star, ZoomIn, X as CloseIcon } from 'lucide-react';
 
 interface ProductDetailsProps {
@@ -138,6 +139,9 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
     () => getRelatedProducts(product, allProducts),
     [allProducts, product]
   );
+
+  // المنتج النافد يُعرض للاطّلاع لكن لا يُضاف للسلة؛ منتجات «حسب الطلب» تبقى متاحة.
+  const isOutOfStock = isProductOutOfStock(product);
 
   return (
     <motion.div
@@ -464,19 +468,31 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
 
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
-              <button
-                onClick={handleAddToCartWithExtras}
-                className="flex-1 bg-primaryDark text-white py-5 rounded-2xl text-xs font-bold tracking-[0.2em] uppercase hover:bg-black transition-all flex items-center justify-center gap-3 shadow-xl hover:shadow-primaryDark/20"
-              >
-                <ShoppingBag className="w-5 h-5" />
-                أضف للسلة
-              </button>
-              <button
-                onClick={handleBuyNowWithExtras}
-                className="flex-1 bg-accent text-primaryDark py-5 rounded-2xl text-xs font-bold tracking-[0.2em] uppercase hover:bg-accent/90 transition-all shadow-xl hover:shadow-accent/20"
-              >
-                شراء الآن
-              </button>
+              {isOutOfStock ? (
+                <button
+                  disabled
+                  className="flex-1 bg-gray-100 text-gray-400 py-5 rounded-2xl text-xs font-bold tracking-[0.2em] uppercase cursor-not-allowed flex items-center justify-center gap-3"
+                >
+                  <ShoppingBag className="w-5 h-5" />
+                  نفدت الكمية
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={handleAddToCartWithExtras}
+                    className="flex-1 bg-primaryDark text-white py-5 rounded-2xl text-xs font-bold tracking-[0.2em] uppercase hover:bg-black transition-all flex items-center justify-center gap-3 shadow-xl hover:shadow-primaryDark/20"
+                  >
+                    <ShoppingBag className="w-5 h-5" />
+                    أضف للسلة
+                  </button>
+                  <button
+                    onClick={handleBuyNowWithExtras}
+                    className="flex-1 bg-accent text-primaryDark py-5 rounded-2xl text-xs font-bold tracking-[0.2em] uppercase hover:bg-accent/90 transition-all shadow-xl hover:shadow-accent/20"
+                  >
+                    شراء الآن
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Trust Bar */}

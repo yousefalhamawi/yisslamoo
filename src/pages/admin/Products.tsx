@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { toast } from '../../utils/toast';
 import { supabase, checkSupabaseConfig } from '../../supabase';
-import { Product } from '../../types/index';
+import { HomeProductSection, Product } from '../../types/index';
 import { useProducts } from '../../hooks/useProducts';
 import { useCategories } from '../../hooks/useCategories';
 import { cn } from '../../utils/cn';
@@ -32,6 +32,7 @@ import { getColorName, getColorHex } from '../../utils/colorUtils';
 import { ImageUpload } from '../../components/admin/ImageUpload';
 import { computeDisplayPrice, formatSYP, formatUSD, isValidExchangeRate } from '../../utils/pricingEngine';
 import { useSharedStore } from '../../store/useSharedStore';
+import { HOME_PRODUCT_SECTION_OPTIONS } from '../../utils/homeProductSections';
 
 const ProductsPage: React.FC = () => {
   const { products, loading, addProduct, updateProduct, deleteProduct } = useProducts();
@@ -66,6 +67,8 @@ const ProductsPage: React.FC = () => {
   const [pricingMode, setPricingMode] = useState<'auto' | 'manual'>('auto');
   const [priceUSD, setPriceUSD] = useState('');
   const [priceSYPManual, setPriceSYPManual] = useState('');
+  const [isMadeToOrder, setIsMadeToOrder] = useState(false);
+  const [homeSection, setHomeSection] = useState<HomeProductSection>('all');
 
   const itemsPerPage = 8;
   const categories = ['الكل', ...Array.from(new Set(categoryList.map(c => c.name)))];
@@ -116,6 +119,8 @@ const ProductsPage: React.FC = () => {
     setPricingMode(mode);
     setPriceUSD(product.price_usd?.toString() ?? '');
     setPriceSYPManual(product.price_syp_manual?.toString() ?? product.price?.toString() ?? '');
+    setIsMadeToOrder(product.is_made_to_order === true);
+    setHomeSection(product.home_section ?? 'all');
     
     setIsModalOpen(true);
   };
@@ -145,6 +150,8 @@ const ProductsPage: React.FC = () => {
     setPricingMode('auto');
     setPriceUSD('');
     setPriceSYPManual('');
+    setIsMadeToOrder(false);
+    setHomeSection('all');
     setIsModalOpen(true);
   };
 
@@ -303,7 +310,9 @@ const ProductsPage: React.FC = () => {
         sub_category_ids: selectedSubCategories,
         badge_text: formData.get('badge_text') as string,
         oldPrice: formData.get('oldPrice') ? Number(formData.get('oldPrice')) : null,
-        stock: Number(formData.get('stock')),
+        stock: isMadeToOrder ? 0 : Number(formData.get('stock')),
+        is_made_to_order: isMadeToOrder,
+        home_section: homeSection,
         features: finalFeatures,
         availableColors: availableColors,
         specifications: {
@@ -464,18 +473,26 @@ const ProductsPage: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div 
-                          className={cn(
-                            "h-full rounded-full",
-                            product.stock === 0 ? "bg-red-500 w-0" : 
-                            product.stock <= 10 ? "bg-amber-500 w-1/3" : "bg-emerald-500 w-full"
-                          )} 
-                        />
+                    {product.is_made_to_order ? (
+                      <span className="inline-flex px-3 py-1 rounded-full text-[10px] font-black bg-violet-50 text-violet-600">
+                        حسب الطلب
+                      </span>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div 
+                            className={cn(
+                              "h-full rounded-full",
+                              product.stock === 0 ? "bg-red-500 w-0" : 
+                              product.stock <= 10 ? "bg-amber-500 w-1/3" : "bg-emerald-500 w-full"
+                            )} 
+                          />
+                        </div>
+                        <span className={cn("text-xs font-bold", product.stock === 0 ? "text-red-500" : "text-slate-500")}>
+                          {product.stock === 0 ? 'منتهي' : product.stock}
+                        </span>
                       </div>
-                      <span className="text-xs font-bold text-slate-500">{product.stock}</span>
-                    </div>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <span className="px-3 py-1 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-600 uppercase tracking-wider">
@@ -749,17 +766,31 @@ const ProductsPage: React.FC = () => {
                         />
                       </div>
 
-                      <div className="space-y-2">
-                        <label className="text-xs font-black text-slate-700">كلمة تظهر فوق المنتج (مثال: للرجال، للطلبات الخاصة، الأكثر مبيعاً)</label>
+                    <div className="space-y-2">
+                      <label className="text-xs font-black text-slate-700">كلمة تظهر فوق المنتج (مثال: للرجال، للطلبات الخاصة، الأكثر مبيعاً)</label>
                         <input 
                           name="badge_text"
                           type="text"
                           defaultValue={editingProduct?.badge_text || ''}
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-bold"
                           placeholder="اكتب النص الذي سيظهر فوق المنتج..."
-                        />
-                      </div>
+                      />
                     </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-black text-slate-700">قسم المنتج في الصفحة الرئيسية</label>
+                      <select
+                        value={homeSection}
+                        onChange={(event) => setHomeSection(event.target.value as HomeProductSection)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                      >
+                        {HOME_PRODUCT_SECTION_OPTIONS.map((section) => (
+                          <option key={section.id} value={section.id}>{section.label}</option>
+                        ))}
+                      </select>
+                      <p className="text-[10px] font-bold text-slate-400">اختر قسماً واحداً؛ سيظهر المنتج ضمنه في تبويبات الصفحة الرئيسية.</p>
+                    </div>
+                  </div>
 
                     {/* Pricing & Inventory */}
                   <div className="space-y-6">
@@ -871,15 +902,31 @@ const ProductsPage: React.FC = () => {
                       </div>
                     </div>
 
+                    <div className="rounded-2xl border border-violet-100 bg-violet-50/60 p-4 space-y-3">
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={isMadeToOrder}
+                          onChange={(event) => setIsMadeToOrder(event.target.checked)}
+                          className="mt-0.5 h-4 w-4 accent-violet-600"
+                        />
+                        <span>
+                          <span className="block text-xs font-black text-violet-900">منتج حسب الطلب</span>
+                          <span className="block mt-1 text-[10px] font-bold leading-5 text-violet-600">يظهر في المتجر ويمكن طلبه، من دون عرض أو احتساب كمية مخزون.</span>
+                        </span>
+                      </label>
+                    </div>
+
                     <div className="space-y-2">
                       <label className="text-xs font-black text-slate-700">كمية المخزون</label>
                       <input 
                         name="stock"
                         type="number" 
-                        required
+                        required={!isMadeToOrder}
+                        disabled={isMadeToOrder}
                         defaultValue={editingProduct?.stock || 0}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                        placeholder="مثلاً: ٥٠"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:cursor-not-allowed disabled:opacity-50"
+                        placeholder={isMadeToOrder ? 'لا تُستخدم الكمية لمنتجات حسب الطلب' : 'مثلاً: ٥٠'}
                       />
                     </div>
 

@@ -55,64 +55,55 @@ export const orderService = {
     return data ? mapOrder(data) : undefined;
   },
 
+  /**
+   * ينشئ الطلب عبر دالة `create_order` على الخادم.
+   *
+   * لا تُرسَل أي مبالغ من المتصفح — فقط معرّفات المنتجات والكميات.
+   * الخادم يقرأ الأسعار من جدول products ويتحقق من الكوبون ويحسب
+   * الإجمالي بنفسه، فلا يمكن تزوير السعر أو الخصم من جهة العميل.
+   */
   create: async (order: Order): Promise<Order> => {
-    
-    // Prepare data for Supabase — send both camelCase AND snake_case because
-    // the DB schema uses camelCase column names (e.g. "customerName" NOT NULL)
-    const toSend: any = { 
-      ...order,
-      // snake_case aliases (kept for forward-compatibility if schema changes)
-      customer_name:    order.customerName,
-      customer_email:   order.customerEmail,
-      payment_method:   order.paymentMethod,
-      is_gift:          order.isGift,
-      gift_wrapping:    order.giftWrapping,
-      gift_message:     order.giftMessage,
-      recipient_names:  order.recipientNames,
-      coupon_code:      order.couponCode,
-    };
-    // NOTE: We intentionally do NOT delete the camelCase fields because the
-    // "orders" table has NOT NULL columns in camelCase (e.g. "customerName").
+    const items = (order.items || []).map(item => ({
+      // productId هو معرّف المنتج؛ item.id هو معرّف سطر السلة
+      id: item.productId || item.id,
+      quantity: item.quantity ?? 1,
+      selectedColor: item.selectedColor ?? null,
+      selectedEngraving: item.selectedEngraving ?? null,
+      selectedGiftWrapping: item.selectedGiftWrapping ?? null,
+      selectedGiftMessage: item.selectedGiftMessage ?? null
+    }));
 
-    // 1. Handle empty strings — Postgres ARRAY columns throw on empty string
-    Object.keys(toSend).forEach(key => {
-      if (toSend[key] === '') {
-        toSend[key] = null;
-      }
+    const missingId = items.find(item => !item.id);
+    if (missingId) {
+      throw new Error('أحد المنتجات في السلة بلا معرّف — يرجى إعادة إضافته.');
+    }
+
+    const { data, error } = await supabase.rpc('create_order', {
+      p_items: items,
+      p_customer_name: order.customerName,
+      p_customer_email: order.customerEmail || null,
+      p_phone: order.phone,
+      p_address: order.address,
+      p_payment_method: order.paymentMethod,
+      p_coupon_code: order.couponCode || null,
+      p_is_gift: order.isGift ?? false,
+      p_gift_wrapping: order.giftWrapping || null,
+      p_gift_message: order.giftMessage || null,
+      p_recipient_names: order.recipientNames || null
     });
 
-    // 2. Stringify items so they work with both TEXT[] and JSONB columns
-    if (toSend.items && Array.isArray(toSend.items)) {
-      toSend.items = toSend.items.map((item: any) => 
-        typeof item === 'object' ? JSON.stringify(item) : item
-      );
-    }
-
-    let { data, error } = await supabase
-      .from(TABLE_NAME)
-      .insert([toSend])
-      .select()
-      .maybeSingle();
-
-    // If a column doesn't exist in the schema, retry without it
-    if (error && (error.code === '42703' || error.message.includes('coupon_code'))) {
-      console.warn('Supabase: Missing column detected. Retrying without coupon_code...');
-      const { coupon_code, ...toSendWithoutCoupon } = toSend;
-      const retry = await supabase
-        .from(TABLE_NAME)
-        .insert([toSendWithoutCoupon])
-        .select()
-        .maybeSingle();
-      
-      data = retry.data;
-      error = retry.error;
-    }
-
     if (error) {
-      console.error('Supabase Error (CREATE):', error);
-      throw new Error(`فشل في إنشاء الطلب في Supabase: ${error.message}${error.details ? ` (${error.details})` : ''}`);
+      console.error('Supabase Error (CREATE ORDER):', error);
+      // رسائل RAISE EXCEPTION من الدالة تصل هنا بالعربية كما هي
+      throw new Error(error.message || 'فشل في إنشاء الطلب');
     }
-    return mapOrder(data);
+
+    const record = Array.isArray(data) ? data[0] : data;
+    if (!record) {
+      throw new Error('لم يُرجِع الخادم بيانات الطلب');
+    }
+
+    return mapOrder(record);
   },
 
   updateStatus: async (id: string, status: Order['status']): Promise<Order> => {

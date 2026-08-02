@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { 
   Search, 
   Filter, 
@@ -19,12 +19,16 @@ import {
   Save
 } from 'lucide-react';
 import { useCustomers } from '../../hooks/useCustomers';
+import { useOrders } from '../../hooks/useOrders';
 import { cn } from '../../utils/cn';
 import { toast } from '../../utils/toast';
+import { buildCustomerStats, CustomerSortOption, sortCustomers } from '../../utils/customerStats';
 
 const CustomersPage: React.FC = () => {
   const { customers, loading, updateCustomer, deleteCustomer } = useCustomers();
+  const { orders } = useOrders();
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<CustomerSortOption>('name');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
@@ -32,7 +36,12 @@ const CustomersPage: React.FC = () => {
   const [formData, setFormData] = useState<any>({});
   const [isSaving, setIsSaving] = useState(false);
 
-  const filteredCustomers = customers.filter(customer => {
+  const customerRows = useMemo(
+    () => sortCustomers(buildCustomerStats(customers, orders), sortBy),
+    [customers, orders, sortBy]
+  );
+
+  const filteredCustomers = customerRows.filter(customer => {
     const name = customer.name || '';
     const email = customer.email || '';
     const phone = customer.phone || '';
@@ -130,10 +139,20 @@ const CustomersPage: React.FC = () => {
             className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pr-11 pl-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
           />
         </div>
-        <button className="bg-slate-50 border border-slate-200 text-slate-600 px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-100 transition-all flex items-center gap-2">
+        <label className="flex items-center gap-2 bg-slate-50 border border-slate-200 text-slate-600 px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-100 transition-all cursor-pointer">
           <Filter className="w-4 h-4" />
-          تصفية
-        </button>
+          <span>ترتيب حسب</span>
+          <select
+            value={sortBy}
+            onChange={(event) => setSortBy(event.target.value as CustomerSortOption)}
+            className="appearance-none bg-transparent text-slate-800 font-black text-sm focus:outline-none cursor-pointer pr-1"
+            aria-label="ترتيب العملاء"
+          >
+            <option value="name">الاسم</option>
+            <option value="totalSpent">إجمالي الإنفاق</option>
+            <option value="ordersCount">عدد الطلبات</option>
+          </select>
+        </label>
       </div>
 
       {/* Customers Table */}

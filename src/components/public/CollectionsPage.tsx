@@ -2,6 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useCollections } from '../../hooks/useCollections';
+import { ArrowLeft } from 'lucide-react';
 
 interface CollectionsPageProps {
   onCollectionClick: (category: string) => void;
@@ -114,9 +115,7 @@ const CollectionsPage: React.FC<CollectionsPageProps> = ({ onCollectionClick }) 
                   >
                     <span className="border-b border-primary/20 pb-1">اكتشف المجموعة كاملة</span>
                     <div className="w-12 h-12 rounded-full border border-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all duration-500">
-                      <svg className="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                      </svg>
+                      <ArrowLeft className="w-5 h-5" strokeWidth={2} />
                     </div>
                   </motion.button>
                 </div>

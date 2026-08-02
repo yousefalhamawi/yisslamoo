@@ -25,6 +25,7 @@ import { Order } from '../../types/admin';
 import { useOrders } from '../../hooks/useOrders';
 import { cn } from '../../utils/cn';
 import { getColorName } from '../../utils/colorUtils';
+import { getOrderTimeline } from '../../utils/orderTimeline';
 
 const OrdersPage: React.FC = () => {
   const { orders, loading, updateOrderStatus, deleteOrder } = useOrders();
@@ -43,6 +44,15 @@ const OrdersPage: React.FC = () => {
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const selectedOrderTimeline = selectedOrder ? getOrderTimeline(selectedOrder) : [];
+
+  const formatTimelineTimestamp = (timestamp?: string) => {
+    if (!timestamp) return 'تمت المرحلة';
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) return timestamp;
+    return new Intl.DateTimeFormat('ar-SY', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -70,9 +80,19 @@ const OrdersPage: React.FC = () => {
 
   const handleStatusUpdate = async (orderId: string, newStatus: Order['status']) => {
     setIsUpdating(true);
-    await updateOrderStatus(orderId, newStatus);
-    setIsUpdating(false);
-    setSelectedOrder(null);
+    try {
+      const updatedOrder = await updateOrderStatus(orderId, newStatus);
+      setSelectedOrder((currentOrder) => currentOrder?.id === orderId
+        ? {
+            ...currentOrder,
+            ...updatedOrder,
+            status: newStatus,
+            updated_at: updatedOrder?.updated_at ?? new Date().toISOString(),
+          }
+        : currentOrder);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -419,24 +439,26 @@ const OrdersPage: React.FC = () => {
                     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
                       <h3 className="text-sm font-black text-slate-900 mb-6 border-b border-slate-100 pb-4">الجدول الزمني</h3>
                       <div className="space-y-6 relative before:absolute before:right-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100">
-                        <div className="relative flex gap-4 items-start">
-                          <div className="w-6 h-6 bg-emerald-500 rounded-full border-4 border-white shadow-sm z-10 flex items-center justify-center">
-                            <CheckCircle2 className="w-3 h-3 text-white" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-black text-slate-900">تم إنشاء الطلب</p>
-                            <p className="text-[10px] text-slate-400 font-bold">١١ مارس ٢٠٢٦ - ١٠:٣٠ ص</p>
-                          </div>
-                        </div>
-                        <div className="relative flex gap-4 items-start">
-                          <div className="w-6 h-6 bg-indigo-500 rounded-full border-4 border-white shadow-sm z-10 flex items-center justify-center">
-                            <Clock className="w-3 h-3 text-white" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-black text-slate-900">قيد المراجعة</p>
-                            <p className="text-[10px] text-slate-400 font-bold">١١ مارس ٢٠٢٦ - ١٠:٤٥ ص</p>
-                          </div>
-                        </div>
+                        {selectedOrderTimeline.map((entry) => {
+                          const Icon = entry.state === 'cancelled' ? X : entry.state === 'complete' ? CheckCircle2 : Clock;
+                          const colors = entry.state === 'cancelled'
+                            ? 'bg-red-500'
+                            : entry.state === 'complete'
+                              ? 'bg-emerald-500'
+                              : 'bg-indigo-500';
+
+                          return (
+                            <div key={entry.id} className="relative flex gap-4 items-start">
+                              <div className={`w-6 h-6 ${colors} rounded-full border-4 border-white shadow-sm z-10 flex items-center justify-center`}>
+                                <Icon className="w-3 h-3 text-white" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-black text-slate-900">{entry.label}</p>
+                                <p className="text-[10px] text-slate-400 font-bold">{formatTimelineTimestamp(entry.timestamp)}</p>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>

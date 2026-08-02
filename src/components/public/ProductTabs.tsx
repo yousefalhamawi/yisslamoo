@@ -24,13 +24,14 @@ import {
   ShoppingBag,
   HelpCircle
 } from 'lucide-react';
-import { Product } from '../../types/index';
+import { HomeProductSection, Product } from '../../types/index';
 import ProductCard from './ProductCard';
 import { useCategories } from '../../hooks/useCategories';
 import { resolveCategoryIcon } from '../../constants/categoryIcons';
+import { getProductsForHomeSection } from '../../utils/homeProductSections';
 
 interface TabItem {
-  id: 'offers' | 'wishlist' | 'all' | 'bestsellers' | 'trending' | 'new';
+  id: HomeProductSection;
   label: string;
   icon: React.ComponentType<any>;
   dataSource: string;
@@ -44,14 +45,42 @@ const TABS_CONFIG: TabItem[] = [
     label: 'عروض اليوم',
     icon: Tag,
     dataSource: 'offers',
-    categoryLink: '/shop?filter=offers'
+    categoryLink: '/shop'
   },
   {
-    id: 'wishlist',
+    id: 'recommended',
     label: 'قد تنال إعجابك',
     icon: Heart,
-    dataSource: 'wishlist',
-    categoryLink: '/shop?filter=recommended'
+    dataSource: 'recommended',
+    categoryLink: '/shop'
+  },
+  {
+    id: 'new',
+    label: 'المنتجات الجديدة',
+    icon: Eye,
+    dataSource: 'new',
+    categoryLink: '/shop'
+  },
+  {
+    id: 'trending',
+    label: 'الأكثر رواجاً',
+    icon: Zap,
+    dataSource: 'trending',
+    categoryLink: '/shop'
+  },
+  {
+    id: 'bestsellers',
+    label: 'الأكثر مبيعاً',
+    icon: Trophy,
+    dataSource: 'bestsellers',
+    categoryLink: '/shop'
+  },
+  {
+    id: 'all',
+    label: 'عرض الكل',
+    icon: Grid,
+    dataSource: 'all',
+    categoryLink: '/shop'
   },
 ];
 
@@ -86,32 +115,11 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
 }) => {
   const navigate = useNavigate();
   const { categories, loading: categoriesLoading } = useCategories();
-  const [activeTab, setActiveTab] = useState<'offers' | 'wishlist'>('offers');
+  const [activeTab, setActiveTab] = useState<HomeProductSection>('all');
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
 
-  // Filter products based on active tab
-  const getFilteredProducts = (): Product[] => {
-    if (activeTab === 'offers') {
-      const discounted = products.filter(p => p.discountPrice && p.discountPrice < p.price);
-      if (discounted.length >= 4) {
-        return discounted.slice(0, 4);
-      }
-      return products.slice(0, 4).map((p, idx) => ({
-        ...p,
-        discountPrice: p.discountPrice || Math.round(p.price * 0.85),
-      }));
-    } else if (activeTab === 'wishlist') {
-      const nonDiscounted = products.filter(p => !p.discountPrice);
-      if (nonDiscounted.length >= 4) {
-        return nonDiscounted.slice(0, 4);
-      }
-      return products.slice(Math.max(0, products.length - 4), products.length);
-    }
-    return [];
-  };
-
   const activeTabConfig = TABS_CONFIG.find(tab => tab.id === activeTab);
-  const displayProducts = getFilteredProducts();
+  const displayProducts = getProductsForHomeSection(products, activeTab).slice(0, 4);
 
   // Get active parent categories from database
   const activeDbCategories = categories.filter(c => c.status === 'active' && !c.parent_id);
@@ -203,7 +211,7 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
             {/* Highly Creative Tab Switcher */}
             <div className="bg-[#2E1065] rounded-3xl p-3.5 shadow-[0_25px_60px_-25px_rgba(46,16,101,0.15)] mb-10 border border-white/5 relative overflow-hidden">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(212,175,55,0.08),_transparent_50%)] pointer-events-none" />
-              <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide flex-nowrap justify-start lg:justify-between relative z-10">
+              <div className="grid grid-cols-3 md:grid-cols-6 gap-1.5 sm:gap-2 relative z-10">
                 {TABS_CONFIG.map((tab) => {
                   const Icon = tab.icon;
                   const isActive = tab.id === activeTab;
@@ -215,9 +223,9 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
                       disabled={isDisabled}
                       whileHover={!isDisabled ? { y: -2 } : {}}
                       whileTap={!isDisabled ? { scale: 0.97 } : {}}
-                      onClick={() => !isDisabled && setActiveTab(tab.id as 'offers' | 'wishlist')}
+                      onClick={() => !isDisabled && setActiveTab(tab.id)}
                       className={`
-                        flex items-center gap-2 sm:gap-2.5 px-4 sm:px-6 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl font-bold text-[13px] sm:text-[14px] whitespace-nowrap transition-all duration-300 relative
+                        min-w-0 flex items-center justify-center gap-1 sm:gap-1.5 px-1.5 sm:px-2 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl font-bold text-[10px] sm:text-[11px] whitespace-nowrap transition-all duration-300 relative
                         ${isDisabled
                           ? 'text-white/30 bg-transparent cursor-not-allowed opacity-50'
                           : isActive
@@ -234,8 +242,8 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
                           transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                         />
                       )}
-                      <Icon className={`w-4.5 h-4.5 ${isActive ? 'text-[#FF6F61]' : 'text-white/40'}`} />
-                      <span>{tab.label}</span>
+                      <Icon className={`relative z-10 w-4 h-4 shrink-0 ${isActive ? 'text-[#FF6F61] opacity-100' : 'text-white/40'}`} />
+                      <span className="relative z-10">{tab.label}</span>
                     </motion.button>
                   );
                 })}
@@ -275,6 +283,11 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
                       </motion.div>
                     );
                   })}
+                  {displayProducts.length === 0 && (
+                    <div className="col-span-full rounded-3xl border-2 border-dashed border-primary/10 bg-white/60 px-6 py-16 text-center">
+                      <p className="text-sm font-bold text-gray-400">لا توجد منتجات ضمن هذا القسم حالياً.</p>
+                    </div>
+                  )}
                 </motion.div>
               </AnimatePresence>
             </div>

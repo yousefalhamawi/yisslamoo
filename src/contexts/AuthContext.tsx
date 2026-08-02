@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase, checkSupabaseConfig } from '../supabase';
-import { User } from '@supabase/supabase-js';
+import { AuthChangeEvent, User } from '@supabase/supabase-js';
 import { createAuthSessionGuard } from './authSessionGuard';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  authEvent: AuthChangeEvent | null;
   signIn: (email: string, pass: string) => Promise<any>;
   signUp: (email: string, pass: string, metadata?: any) => Promise<any>;
   signInWithOtp: (email: string, metadata?: any) => Promise<any>;
@@ -20,6 +21,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authEvent, setAuthEvent] = useState<AuthChangeEvent | null>(null);
 
   useEffect(() => {
     if (!checkSupabaseConfig()) {
@@ -32,10 +34,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!sessionGuard.recordAuthEvent(event)) return;
+      const accepted = sessionGuard.recordAuthEvent(event, Boolean(session));
+      if (import.meta.env.DEV) {
+        console.info('[Auth session event]', { event, hasSession: Boolean(session), accepted });
+      }
+      if (!accepted) return;
       if (!isActive) return;
 
       setUser(session?.user ?? null);
+      setAuthEvent(event);
       setLoading(false);
     });
 
@@ -76,16 +83,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     if (!checkSupabaseConfig()) return;
     await supabase.auth.signOut();
+    setUser(null);
+    setAuthEvent('SIGNED_OUT');
   };
 
   const value = {
     user,
     loading,
+    authEvent,
     signIn: async (email: string, pass: string) => {
       if (!checkSupabaseConfig()) {
         throw new Error('Supabase is not configured. Please set the environment variables.');
       }
-      return supabase.auth.signInWithPassword({ email, password: pass });
+      const result = await supabase.auth.signInWithPassword({ email, password: pass });
+
+      // Apply the confirmed response immediately. Subscription callbacks still
+      // own subsequent session changes, but cannot erase this fresh sign-in.
+      if (result.data.session?.user) {
+        setUser(result.data.session.user);
+        setAuthEvent('SIGNED_IN');
+        setLoading(false);
+        if (import.meta.env.DEV) {
+          console.info('[Auth login response]', { hasSession: true });
+        }
+      }
+
+      return result;
     },
     signUp: async (email: string, pass: string, metadata?: any) => {
       if (!checkSupabaseConfig()) {

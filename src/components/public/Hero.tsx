@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, ChevronLeft, ShoppingBag } from 'lucide-react';
-import { useSharedStore } from '../../store/useSharedStore';
+import { useHeroSlides } from '../../hooks/useHeroSlides';
 
 const Hero: React.FC = () => {
-  const { heroSlides } = useSharedStore();
+  // فشل السلايدر لا يمنع التسوّق — نخفيه بصمت بدل إظهار خطأ للزائر
+  const { heroSlides, loading } = useHeroSlides({ silentLoadErrors: true });
   const slides = heroSlides || [];
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -49,6 +50,17 @@ const Hero: React.FC = () => {
     return () => clearInterval(timer);
   }, [slides.length]);
 
+  // يجب أن يأتي الشرط بعد جميع Hooks حتى يبقى ترتيبها ثابتاً بين عمليات العرض.
+  if (loading && slides.length === 0) {
+    return (
+      <section className="w-full pt-36 md:pt-40 pb-10 px-4 md:px-10 bg-white" dir="rtl" aria-busy="true">
+        <div className="w-full max-w-[1600px] mx-auto h-[400px] md:h-[500px] lg:h-[600px] rounded-[30px] bg-primary/[0.04] animate-pulse" />
+      </section>
+    );
+  }
+
+  if (slides.length === 0) return null;
+
   const nextSlide = () => {
     if (slides.length <= 1) return;
     setCurrentSlide((prev) => (prev + 1) % slides.length);
@@ -77,6 +89,8 @@ const Hero: React.FC = () => {
                 src={slide.image}
                 alt={slide.title}
                 className="w-full h-full object-cover"
+                loading={index === currentSlide ? 'eager' : 'lazy'}
+                fetchPriority={index === currentSlide ? 'high' : 'auto'}
               />
               {/* Optional slight gradient overlay for text readability if needed */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/40 md:to-white/60"></div>

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { LucideIcon, Bell, CheckCircle2, AlertCircle, Info, ShoppingCart, Heart, Package } from 'lucide-react';
+import { LucideIcon, Bell, CheckCircle2, AlertCircle, Info, ShoppingCart, Heart, Package, X } from 'lucide-react';
 
 export type NotificationType = 'success' | 'error' | 'info' | 'cart' | 'wishlist' | 'order';
 
@@ -105,9 +105,7 @@ const NotificationToast: React.FC<{ notification: Notification, onDismiss: () =>
           <p className="text-gray-500 text-xs font-bold leading-relaxed">{notification.message}</p>
         </div>
         <button onClick={onDismiss} className="text-gray-300 hover:text-gray-500 transition-colors">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <X className="w-4 h-4" strokeWidth={2} />
         </button>
       </div>
       {notification.action && (

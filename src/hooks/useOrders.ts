@@ -36,11 +36,13 @@ export const useOrders = () => {
   const updateOrderStatus = async (id: string, status: Order['status']) => {
     const loadingToast = toast.loading('جاري تحديث حالة الطلب...');
     try {
-      if (checkSupabaseConfig()) {
-        await orderService.updateStatus(id, status);
-      }
-      storeUpdateOrder(id, { status });
+      const fallbackUpdate = { status, updated_at: new Date().toISOString() };
+      const updatedOrder = checkSupabaseConfig()
+        ? await orderService.updateStatus(id, status)
+        : undefined;
+      storeUpdateOrder(id, updatedOrder ?? fallbackUpdate);
       toast.success('تم تحديث حالة الطلب بنجاح', { id: loadingToast });
+      return updatedOrder;
     } catch (err) {
       setError('Failed to update order status');
       toast.error('فشل في تحديث حالة الطلب', { id: loadingToast });

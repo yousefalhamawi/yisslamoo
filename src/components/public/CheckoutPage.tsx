@@ -5,12 +5,13 @@ import { Product } from '../../types/index';
 import { Customer, Address } from '../../types/admin';
 import { validateEmail, validatePhone } from '../../utils/validation';
 import { getColorName, getColorHex } from '../../utils/colorUtils';
-import { useCoupons } from '../../hooks/useCoupons';
 import { addressService } from '../../services/addressService';
 import { customerService } from '../../services/customerService';
 import { toast } from '../../utils/toast';
 import { computeDisplayPrice } from '../../utils/pricingEngine';
 import { useSharedStore } from '../../store/useSharedStore';
+import { ChevronLeft, Check, SquarePen, Trash2, MapPin, ShieldCheck } from 'lucide-react';
+import { supabase } from '../../supabase';
 import {
   FORM_TITLE,
   FORM_LABEL,
@@ -31,7 +32,6 @@ interface CheckoutPageProps {
 }
 
 const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onBack, onCompleteOrder, onUpdateCustomer }) => {
-  const { coupons } = useCoupons();
   const exchangeRate = useSharedStore((s) => s.exchangeRate);
   const [step, setStep] = useState(user ? 2 : 1);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
@@ -299,65 +299,50 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
   const [couponCode, setCouponCode] = useState('');
   const [discount, setDiscount] = useState(0);
   const [couponError, setCouponError] = useState('');
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
   const subtotal = items.reduce((sum, item) => sum + (computeDisplayPrice(item, exchangeRate) * (item.quantity || 1)), 0);
   const shipping = subtotal > 2000000 ? 0 : 50000;
   const total = subtotal + shipping - discount;
 
-  const handleApplyCoupon = () => {
-    const code = couponCode.toUpperCase().trim();
+  /**
+   * التحقق من الكوبون يتم على الخادم عبر `validate_coupon`.
+   * الخصم المعروض هنا للعرض فقط — الخادم يعيد حسابه عند إنشاء الطلب،
+   * فتعديله من أدوات المتصفح لا يغيّر المبلغ المدفوع فعلياً.
+   */
+  const handleApplyCoupon = async () => {
+    const code = couponCode.trim();
     if (!code) {
       setCouponError('يرجى إدخال كود الخصم');
       return;
     }
 
-    const coupon = coupons.find(c => c.code.toUpperCase() === code);
+    setIsApplyingCoupon(true);
+    try {
+      const { data, error } = await supabase.rpc('validate_coupon', {
+        p_code: code,
+        p_subtotal: subtotal
+      });
 
-    if (!coupon) {
+      if (error) throw error;
+
+      const result = Array.isArray(data) ? data[0] : data;
+
+      if (!result?.valid) {
+        setDiscount(0);
+        setCouponError(result?.message || 'كود الخصم غير صحيح');
+        return;
+      }
+
+      setDiscount(Number(result.discount) || 0);
+      setCouponError('');
+    } catch (err) {
+      console.error('Coupon validation failed:', err);
       setDiscount(0);
-      setCouponError('كود الخصم غير صحيح');
-      return;
+      setCouponError('تعذّر التحقق من كود الخصم. حاول مرة أخرى.');
+    } finally {
+      setIsApplyingCoupon(false);
     }
-
-    if (coupon.status !== 'active') {
-      setDiscount(0);
-      setCouponError('هذا الكوبون غير فعال حالياً');
-      return;
-    }
-
-    // Check expiry date
-    const now = new Date();
-    const expiry = new Date(coupon.expiryDate);
-    if (expiry < now) {
-      setDiscount(0);
-      setCouponError('هذا الكوبون منتهي الصلاحية');
-      return;
-    }
-
-    // Check usage limit
-    if (coupon.usedCount >= coupon.usageLimit) {
-      setDiscount(0);
-      setCouponError('تم استهلاك جميع مرات استخدام هذا الكوبون');
-      return;
-    }
-
-    // Check minimum order amount
-    if (coupon.minOrderAmount && subtotal < coupon.minOrderAmount) {
-      setDiscount(0);
-      setCouponError(`الحد الأدنى لاستخدام هذا الكوبون هو ${coupon.minOrderAmount.toLocaleString()} ل.س`);
-      return;
-    }
-
-    // Calculate discount
-    let calculatedDiscount = 0;
-    if (coupon.type === 'percentage') {
-      calculatedDiscount = (subtotal * coupon.value) / 100;
-    } else {
-      calculatedDiscount = coupon.value;
-    }
-
-    setDiscount(calculatedDiscount);
-    setCouponError('');
   };
 
   const steps = user 
@@ -421,9 +406,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
             onClick={onBack}
             className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-primary transition-colors mb-6"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
-            </svg>
+            <ChevronLeft className="w-4 h-4" strokeWidth={2.5} />
             <span className="font-bold">العودة</span>
           </button>
 
@@ -448,9 +431,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
                       }`}
                     >
                       {isDone ? (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                        </svg>
+                        <Check className="w-4 h-4" strokeWidth={3} />
                       ) : (
                         s.id
                       )}
@@ -593,9 +574,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
                                           className="p-1.5 text-gray-400 hover:text-primary transition-colors"
                                           title="تعديل العنوان"
                                         >
-                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                          </svg>
+                                          <SquarePen className="w-4 h-4" strokeWidth={2} />
                                         </button>
                                         <button 
                                           onClick={(e) => {
@@ -605,9 +584,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
                                           className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
                                           title="حذف العنوان"
                                         >
-                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                          </svg>
+                                          <Trash2 className="w-4 h-4" strokeWidth={2} />
                                         </button>
                                       </div>
                                     </div>
@@ -619,10 +596,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
                                   </div>
                                 </div>
                                 <div className="p-3 bg-gray-50 rounded-2xl">
-                                  <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                  </svg>
+                                  <MapPin className="w-6 h-6 text-primary" strokeWidth={2} />
                                 </div>
                               </div>
                             </div>
@@ -962,9 +936,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
                                           }}
                                           className="p-1 text-gray-400 hover:text-primary transition-colors"
                                         >
-                                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                          </svg>
+                                          <SquarePen className="w-3.5 h-3.5" strokeWidth={2} />
                                         </button>
                                       </div>
                                       <p className="text-xs text-gray-500 font-bold">{addr.phone}</p>
@@ -1115,11 +1087,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
               <div className="mb-8 p-6 bg-gray-50 rounded-2xl border border-gray-100">
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-right mb-3">هل لديك كوبون خصم؟</label>
                 <div className="flex gap-2">
-                  <button 
+                  <button
                     onClick={handleApplyCoupon}
-                    className="bg-primary text-white px-4 py-2 rounded-xl font-black text-xs hover:bg-primaryDark transition-all"
+                    disabled={isApplyingCoupon}
+                    className="bg-primary text-white px-4 py-2 rounded-xl font-black text-xs hover:bg-primaryDark disabled:opacity-60 disabled:pointer-events-none transition-all"
                   >
-                    تطبيق
+                    {isApplyingCoupon ? '...' : 'تطبيق'}
                   </button>
                   <input 
                     type="text" 
@@ -1160,7 +1133,9 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, user, customers, onB
               <div className="mt-10 p-8 bg-primary/5 rounded-[2.5rem] border border-primary/10 relative overflow-hidden">
                 <div className="flex gap-4 items-center mb-4 flex-row-reverse">
                   <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                    {/* نجمة ممتلئة وسط أيقونات محدّدة كانت شاذة — والدرع هو رمز
+                        الضمان المستخدم في باقي الموقع */}
+                    <ShieldCheck className="w-6 h-6" strokeWidth={2} />
                   </div>
                   <p className="font-black text-primary text-base">ضمان نخبة الذهبي</p>
                 </div>
