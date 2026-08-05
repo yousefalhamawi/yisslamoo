@@ -126,7 +126,7 @@ const OurStoryPage: React.FC = () => {
       <section className="relative py-16 md:py-24 overflow-hidden">
         <div className="absolute inset-x-0 top-1/2 h-[75%] -translate-y-1/2 bg-gradient-to-l from-[#F6F1FA] via-white to-[#FFF8EC]" />
         <div className="absolute top-20 right-[8%] w-44 h-44 rounded-full bg-[#D4AF37]/10 blur-3xl" />
-        <div className="absolute bottom-10 left-[10%] w-56 h-56 rounded-full bg-[#4C1D95]/10 blur-3xl" />
+        <div className="absolute bottom-10 left-[10%] w-56 h-56 rounded-full bg-[#4b3976]/10 blur-3xl" />
 
         <div className="container relative mx-auto px-6 max-w-6xl">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
@@ -147,7 +147,7 @@ const OurStoryPage: React.FC = () => {
             <h2 className="max-w-xl text-3xl md:text-[2.7rem] font-black text-[#1A0E2B] leading-[1.28] tracking-tight">
               كلمة صغيرة، ومعنى كبير من الامتنان والتقدير.
             </h2>
-            <div className="relative overflow-hidden rounded-2xl bg-[#F6F1FA] border border-[#4C1D95]/10 px-6 py-5 text-[#2E1065]">
+            <div className="relative overflow-hidden rounded-2xl bg-[#F6F1FA] border border-[#4b3976]/10 px-6 py-5 text-[#4b3976]">
               <span className="absolute top-[-18px] left-5 text-7xl leading-none font-serif text-[#D4AF37]/25">“</span>
               <p className="relative text-base md:text-lg leading-8 font-medium">
                 أصلها من الفعل <strong className="text-[#B38728] font-black">"سَلِم"</strong> أي الدعاء بالسلامة والعافية، وكأن القائل يقول: <span className="font-black">"يسلم إيدك"</span>.
@@ -155,7 +155,7 @@ const OurStoryPage: React.FC = () => {
             </div>
             <div className="text-gray-600 text-sm md:text-base leading-8 font-normal space-y-4">
               <p>
-                من هنا، وُلِد <strong className="text-[#2E1065] font-black">"متجر يسلمو"</strong> – وجهتك للهدايا المختارة بعناية، حيث تجتمع اللمسة الشخصية والجودة العالية والتصميم الراقي.
+                من هنا، وُلِد <strong className="text-[#4b3976] font-black">"متجر يسلمو"</strong> – وجهتك للهدايا المختارة بعناية، حيث تجتمع اللمسة الشخصية والجودة العالية والتصميم الراقي.
               </p>
               <p className="font-black text-[#1A0E2B]">
                 نحن لا نبيع منتجات فحسب… نحن نساعدك على التعبير، الإهداء، والاحتفال.
@@ -167,7 +167,7 @@ const OurStoryPage: React.FC = () => {
                 { label: 'لمسة شخصية', icon: Heart },
                 { label: 'فخامة في التفاصيل', icon: Sparkles },
               ].map(({ label, icon: Icon }) => (
-                <span key={label} className="inline-flex items-center gap-1.5 rounded-full bg-white border border-[#4C1D95]/10 px-3.5 py-2 text-[10px] font-bold text-primaryDark shadow-sm">
+                <span key={label} className="inline-flex items-center gap-1.5 rounded-full bg-white border border-[#4b3976]/10 px-3.5 py-2 text-[10px] font-bold text-primaryDark shadow-sm">
                   <Icon size={13} className="text-[#B38728]" />
                   {label}
                 </span>
@@ -182,14 +182,14 @@ const OurStoryPage: React.FC = () => {
             transition={{ duration: 0.8 }}
             className="lg:col-span-5 relative px-3 md:px-5"
           >
-            <div className="absolute -inset-2 rounded-[2.5rem] bg-gradient-to-br from-[#D4AF37]/35 via-transparent to-[#4C1D95]/25 blur-sm" />
+            <div className="absolute -inset-2 rounded-[2.5rem] bg-gradient-to-br from-[#D4AF37]/35 via-transparent to-[#4b3976]/25 blur-sm" />
             <div className="relative overflow-hidden rounded-[2rem] md:rounded-[2.5rem] border-[10px] border-white shadow-[0_28px_70px_rgba(46,16,101,0.16)] bg-white">
               <img 
                 src="https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=800&auto=format&fit=crop" 
                 alt="الهدايا الفاخرة في يسلمو" 
                 className="w-full h-[330px] sm:h-[410px] object-cover transition-transform duration-700 hover:scale-105"
               />
-              <div className="absolute inset-x-4 bottom-4 flex items-center justify-between rounded-2xl bg-[#2E1065]/90 backdrop-blur-md px-4 py-3 text-white shadow-lg">
+              <div className="absolute inset-x-4 bottom-4 flex items-center justify-between rounded-2xl bg-[#4b3976]/90 backdrop-blur-md px-4 py-3 text-white shadow-lg">
                 <div>
                   <p className="text-[9px] text-white/60 mb-0.5">هدية تحكي قصة</p>
                   <p className="text-xs font-bold">كل تفصيل يصنع لحظة</p>
@@ -206,7 +206,7 @@ const OurStoryPage: React.FC = () => {
       <section className="py-20 bg-white border-y border-gray-50">
         <div className="container mx-auto px-6 max-w-6xl">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-[10px] font-bold text-[#4C1D95] uppercase tracking-[0.4em] mb-4 block">🎁 لماذا "يسلمو"؟</span>
+            <span className="text-[10px] font-bold text-[#4b3976] uppercase tracking-[0.4em] mb-4 block">🎁 لماذا "يسلمو"؟</span>
             <h2 className="text-3xl md:text-4xl font-black text-[#1A0E2B]">المتجر الذي يصنع الفارق</h2>
           </div>
 
@@ -227,7 +227,7 @@ const OurStoryPage: React.FC = () => {
                   <r.icon size={24} strokeWidth={1.5} />
                 </div>
                 <div className="space-y-3">
-                  <h3 className="text-lg font-bold text-[#1A0E2B] group-hover:text-[#4C1D95] transition-colors">{r.title}</h3>
+                  <h3 className="text-lg font-bold text-[#1A0E2B] group-hover:text-[#4b3976] transition-colors">{r.title}</h3>
                   <p className="text-gray-500 text-sm leading-relaxed font-light">{r.desc}</p>
                 </div>
               </motion.div>
@@ -240,7 +240,7 @@ const OurStoryPage: React.FC = () => {
       <section className="py-24 bg-[#FCFBFA]">
         <div className="container mx-auto px-6 max-w-6xl">
           <div className="text-center max-w-2xl mx-auto mb-20">
-            <span className="text-[10px] font-bold text-[#4C1D95] uppercase tracking-[0.4em] mb-4 block">✨ مبادئنا</span>
+            <span className="text-[10px] font-bold text-[#4b3976] uppercase tracking-[0.4em] mb-4 block">✨ مبادئنا</span>
             <h2 className="text-3xl md:text-4xl font-black text-[#1A0E2B]">القيم التي تحكم كل تفصيل لدينا</h2>
           </div>
 
@@ -274,7 +274,7 @@ const OurStoryPage: React.FC = () => {
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="bg-gradient-to-br from-[#2E1065]/5 to-transparent border border-primary/5 rounded-[2.5rem] p-10 flex flex-col justify-between text-right relative overflow-hidden"
+              className="bg-gradient-to-br from-[#4b3976]/5 to-transparent border border-primary/5 rounded-[2.5rem] p-10 flex flex-col justify-between text-right relative overflow-hidden"
             >
               <div className="absolute -top-10 -left-10 w-40 h-40 bg-[#D4AF37]/5 rounded-full blur-2xl pointer-events-none" />
               <div className="space-y-6 relative z-10">
@@ -294,11 +294,11 @@ const OurStoryPage: React.FC = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
-              className="bg-gradient-to-br from-[#4C1D95]/5 to-transparent border border-primary/5 rounded-[2.5rem] p-10 flex flex-col justify-between text-right relative overflow-hidden"
+              className="bg-gradient-to-br from-[#4b3976]/5 to-transparent border border-primary/5 rounded-[2.5rem] p-10 flex flex-col justify-between text-right relative overflow-hidden"
             >
-              <div className="absolute -top-10 -left-10 w-40 h-40 bg-[#4C1D95]/5 rounded-full blur-2xl pointer-events-none" />
+              <div className="absolute -top-10 -left-10 w-40 h-40 bg-[#4b3976]/5 rounded-full blur-2xl pointer-events-none" />
               <div className="space-y-6 relative z-10">
-                <div className="w-12 h-12 rounded-2xl bg-purple-50 text-[#4C1D95] flex items-center justify-center">
+                <div className="w-12 h-12 rounded-2xl bg-purple-50 text-[#4b3976] flex items-center justify-center">
                   <Send size={24} />
                 </div>
                 <h3 className="text-2xl font-black text-[#1A0E2B]">رسالتنا</h3>

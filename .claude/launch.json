@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 3000
+    },
+    {
+      "name": "washapp-landing",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "C:/Users/youse/OneDrive/Desktop/washapp-landing", "run", "dev", "--", "-p", "3100"],
+      "port": 3100
     }
   ]
 }

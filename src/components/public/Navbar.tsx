@@ -566,16 +566,16 @@ const Navbar: React.FC<NavbarProps> = ({
         {/* الرئيسية */}
         <button 
           onClick={() => navigate('/')}
-          className={`flex flex-col items-center justify-center gap-1.5 flex-1 transition-colors duration-200 ${location.pathname === '/' ? 'text-[#2E1065]' : 'text-gray-400 hover:text-gray-700'}`}
+          className={`flex flex-col items-center justify-center gap-1.5 flex-1 transition-colors duration-200 ${location.pathname === '/' ? 'text-[#4b3976]' : 'text-gray-400 hover:text-gray-700'}`}
         >
-          <House className={`w-6 h-6 stroke-[1.5] ${location.pathname === '/' ? 'fill-[#2E1065]/10' : ''}`} />
+          <House className={`w-6 h-6 stroke-[1.5] ${location.pathname === '/' ? 'fill-[#4b3976]/10' : ''}`} />
           <span className="text-[11px] font-bold tracking-tight">الرئيسية</span>
         </button>
 
         {/* الفئات */}
         <button 
           onClick={() => navigate('/shop')}
-          className={`flex flex-col items-center justify-center gap-1.5 flex-1 transition-colors duration-200 ${location.pathname === '/shop' ? 'text-[#2E1065]' : 'text-gray-400 hover:text-gray-700'}`}
+          className={`flex flex-col items-center justify-center gap-1.5 flex-1 transition-colors duration-200 ${location.pathname === '/shop' ? 'text-[#4b3976]' : 'text-gray-400 hover:text-gray-700'}`}
         >
           <Grid2x2 className="w-6 h-6 stroke-[1.5]" />
           <span className="text-[11px] font-bold tracking-tight">الفئات</span>
@@ -589,7 +589,7 @@ const Navbar: React.FC<NavbarProps> = ({
           <div className="relative">
             <ShoppingBag className="w-6 h-6 stroke-[1.5]" />
             {cartCount > 0 && (
-              <span className="absolute -top-2 -right-2 min-w-[16px] h-4 bg-[#2E1065] text-white text-[8px] font-black rounded-full flex items-center justify-center border-2 border-white px-1">
+              <span className="absolute -top-2 -right-2 min-w-[16px] h-4 bg-[#4b3976] text-white text-[8px] font-black rounded-full flex items-center justify-center border-2 border-white px-1">
                 {cartCount}
               </span>
             )}
@@ -606,7 +606,7 @@ const Navbar: React.FC<NavbarProps> = ({
               onOpenLogin();
             }
           }}
-          className={`flex flex-col items-center justify-center gap-1.5 flex-1 transition-colors duration-200 ${location.pathname === '/settings' ? 'text-[#2E1065]' : 'text-gray-400 hover:text-gray-700'}`}
+          className={`flex flex-col items-center justify-center gap-1.5 flex-1 transition-colors duration-200 ${location.pathname === '/settings' ? 'text-[#4b3976]' : 'text-gray-400 hover:text-gray-700'}`}
         >
           <CircleUserRound className="w-6 h-6 stroke-[1.5]" />
           <span className="text-[11px] font-bold tracking-tight">حسابي</span>

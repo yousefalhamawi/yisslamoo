@@ -141,7 +141,7 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
       <div className="absolute bottom-10 left-10 w-[500px] h-[500px] bg-[radial-gradient(circle_at_center,_rgba(212,175,55,0.03),_transparent_70%)] pointer-events-none blur-2xl" />
 
       {/* Subtle brand lines */}
-      <div className="absolute left-0 right-0 top-12 h-px bg-gradient-to-r from-transparent via-[#2E1065]/5 to-transparent pointer-events-none" />
+      <div className="absolute left-0 right-0 top-12 h-px bg-gradient-to-r from-transparent via-[#4b3976]/5 to-transparent pointer-events-none" />
 
       <div className="container mx-auto px-4 md:px-8 max-w-7xl relative z-10">
 
@@ -189,7 +189,7 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
                       className="flex items-center justify-between p-3.5 rounded-2xl hover:bg-gradient-to-l hover:from-primary/5 hover:to-transparent text-gray-600 hover:text-primaryDark hover:translate-x-[-6px] transition-all duration-300 group"
                     >
                       <div className="flex items-center gap-3.5">
-                        <div className="w-9 h-9 rounded-xl bg-gray-50 group-hover:bg-[#2E1065] flex items-center justify-center transition-all duration-300 shadow-sm border border-gray-100/50 group-hover:rotate-6">
+                        <div className="w-9 h-9 rounded-xl bg-gray-50 group-hover:bg-[#4b3976] flex items-center justify-center transition-all duration-300 shadow-sm border border-gray-100/50 group-hover:rotate-6">
                           <Icon className="w-5 h-5 text-gray-400 group-hover:text-accent transition-colors" />
                         </div>
                         <span className="text-[13.5px] font-extrabold leading-none tracking-tight">{cat.label}</span>
@@ -209,7 +209,7 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
           <div className="flex-1 min-w-0 order-2 flex flex-col justify-between">
 
             {/* Highly Creative Tab Switcher */}
-            <div className="bg-[#2E1065] rounded-3xl p-3.5 shadow-[0_25px_60px_-25px_rgba(46,16,101,0.15)] mb-10 border border-white/5 relative overflow-hidden">
+            <div className="bg-[#4b3976] rounded-3xl p-3.5 shadow-[0_25px_60px_-25px_rgba(46,16,101,0.15)] mb-10 border border-white/5 relative overflow-hidden">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(212,175,55,0.08),_transparent_50%)] pointer-events-none" />
               <div className="grid grid-cols-3 md:grid-cols-6 gap-1.5 sm:gap-2 relative z-10">
                 {TABS_CONFIG.map((tab) => {
@@ -229,7 +229,7 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
                         ${isDisabled
                           ? 'text-white/30 bg-transparent cursor-not-allowed opacity-50'
                           : isActive
-                            ? 'text-[#2E1065] bg-white shadow-xl shadow-black/10 scale-[1.03]'
+                            ? 'text-[#4b3976] bg-white shadow-xl shadow-black/10 scale-[1.03]'
                             : 'text-white/70 hover:text-white hover:bg-white/5 bg-transparent'
                         }
                       `}
@@ -297,7 +297,7 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
               <div className="mt-20 text-center relative z-20">
                 <Link
                   to={activeTabConfig.categoryLink}
-                  className="inline-flex items-center gap-3 px-10 py-4 bg-transparent border-2 border-primaryDark/10 text-primaryDark font-extrabold rounded-2xl hover:bg-[#2E1065] hover:text-white hover:border-[#2E1065] transition-all duration-300 shadow-sm hover:shadow-xl hover:translate-y-[-2px] group"
+                  className="inline-flex items-center gap-3 px-10 py-4 bg-transparent border-2 border-primaryDark/10 text-primaryDark font-extrabold rounded-2xl hover:bg-[#4b3976] hover:text-white hover:border-[#4b3976] transition-all duration-300 shadow-sm hover:shadow-xl hover:translate-y-[-2px] group"
                 >
                   <span>استكشف المزيد من {activeTabConfig.label}</span>
                   <ArrowRight className="w-5 h-5 rotate-180 transition-transform group-hover:-translate-x-1.5" />

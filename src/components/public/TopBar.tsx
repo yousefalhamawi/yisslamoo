@@ -49,7 +49,7 @@ const TopBar: React.FC = () => {
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 w-full h-8 bg-[#2E1065] px-4 flex items-center justify-between z-[110]"
+      className="fixed top-0 left-0 right-0 w-full h-8 bg-[#4b3976] px-4 flex items-center justify-between z-[110]"
       dir="rtl"
     >
       {/* يمين: معلومات النص */}

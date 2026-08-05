@@ -30,7 +30,7 @@ describe('mobile bottom navigation', () => {
     );
     const mobileNavigation = markup.slice(markup.lastIndexOf('dir="rtl"'));
 
-    expect(mobileNavigation).toContain('text-[#2E1065]');
+    expect(mobileNavigation).toContain('text-[#4b3976]');
     expect(mobileNavigation).not.toContain('#FF3B30');
     expect(mobileNavigation).toContain('lucide-house');
     expect(mobileNavigation).toContain('lucide-grid-2x2');
