@@ -32,11 +32,11 @@ const PoliciesPage: React.FC = () => {
   return (
     <div className="bg-[#FCFBFA] min-h-screen text-right pb-24">
       {/* Breadcrumb / Banner Section */}
-      <section className="relative page-offset-lg pb-24 bg-gradient-to-br from-[#4b3976] to-[#4b3976] text-white overflow-hidden">
+      <section className="relative page-offset-lg pb-24 bg-gradient-to-br from-[#4C1D95] to-[#4C1D95] text-white overflow-hidden">
         {/* Soft Decorative Background */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-[-50%] right-[-20%] w-[80%] h-[150%] bg-[#D4AF37]/10 rounded-full blur-[140px] rotate-12" />
-          <div className="absolute bottom-[-50%] left-[-20%] w-[60%] h-[120%] bg-[#4b3976]/60 rounded-full blur-[120px]" />
+          <div className="absolute bottom-[-50%] left-[-20%] w-[60%] h-[120%] bg-[#4C1D95]/60 rounded-full blur-[120px]" />
           <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]" />
         </div>
 
@@ -82,7 +82,7 @@ const PoliciesPage: React.FC = () => {
                       onClick={() => handleTabChange(tab.id)}
                       className={`w-full text-right flex items-start gap-4 p-4 rounded-2xl border transition-all duration-300 relative group overflow-hidden ${
                         isActive
-                          ? 'border-[#4b3976]/20 bg-primary/5 text-primaryDark shadow-sm'
+                          ? 'border-[#4C1D95]/20 bg-primary/5 text-primaryDark shadow-sm'
                           : 'border-transparent hover:bg-gray-50 text-gray-500 hover:text-primaryDark'
                       }`}
                     >
@@ -94,7 +94,7 @@ const PoliciesPage: React.FC = () => {
                         />
                       )}
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-500 group-hover:scale-110 ${
-                        isActive ? 'bg-[#4b3976] text-white' : 'bg-gray-100 text-gray-400 group-hover:bg-primary/5 group-hover:text-primary'
+                        isActive ? 'bg-[#4C1D95] text-white' : 'bg-gray-100 text-gray-400 group-hover:bg-primary/5 group-hover:text-primary'
                       }`}>
                         <Icon size={18} strokeWidth={1.8} />
                       </div>
@@ -109,7 +109,7 @@ const PoliciesPage: React.FC = () => {
             </div>
             
             {/* Quick Contact Help widget */}
-            <div className="bg-gradient-to-tr from-[#4b3976] to-[#4b3976] text-white rounded-[2.5rem] p-8 shadow-xl relative overflow-hidden text-right">
+            <div className="bg-gradient-to-tr from-[#4C1D95] to-[#4C1D95] text-white rounded-[2.5rem] p-8 shadow-xl relative overflow-hidden text-right">
               <div className="absolute top-0 right-0 w-24 h-24 bg-[#D4AF37]/10 rounded-full blur-xl pointer-events-none" />
               <HelpCircle className="w-8 h-8 text-[#D4AF37] mb-6" />
               <h4 className="font-black text-base mb-2">هل تحتاج إلى مساعدة إضافية؟</h4>
@@ -298,7 +298,7 @@ const PoliciesPage: React.FC = () => {
                   <div className="h-px bg-gray-100" />
 
                   <div className="space-y-6">
-                    <div className="bg-[#4b3976]/5 border-r-4 border-[#4b3976] p-5 rounded-l-2xl flex items-start gap-3">
+                    <div className="bg-[#4C1D95]/5 border-r-4 border-[#4C1D95] p-5 rounded-l-2xl flex items-start gap-3">
                       <AlertTriangle className="text-[#D4AF37] shrink-0 mt-0.5" size={18} />
                       <p className="text-xs text-primaryDark leading-relaxed font-medium">
                         <strong>تنبيه هام للمنتجات المخصصة:</strong> لا يمكن إرجاع أو استبدال الهدايا التي تم تخصيصها باسم، تاريخ، أو رسالة بناءً على طلب العميل إلا في حال وجود خطأ في التنفيذ أو عيب مصنعي من طرفنا.

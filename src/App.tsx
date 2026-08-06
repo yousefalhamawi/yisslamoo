@@ -155,7 +155,7 @@ const ProductDetailsWrapper: React.FC<{
       return (
         <div className="min-h-screen bg-[#FCFBFA] flex items-center justify-center pt-32 pb-24" dir="rtl">
           <div className="text-center">
-            <div className="w-16 h-16 border-4 border-[#4b3976] border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+            <div className="w-16 h-16 border-4 border-[#4C1D95] border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
             <p className="text-gray-500 font-bold text-lg">جاري تحميل تفاصيل المنتج...</p>
           </div>
         </div>

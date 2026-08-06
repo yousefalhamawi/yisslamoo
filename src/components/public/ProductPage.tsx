@@ -320,7 +320,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
                   className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-primaryDark focus:outline-none"
                   style={{
-                    background: `linear-gradient(to left, #4b3976 ${((priceRange[1] - 0) / (maxProductPrice - 0)) * 100}%, #f3f4f6 0%)`
+                    background: `linear-gradient(to left, #4C1D95 ${((priceRange[1] - 0) / (maxProductPrice - 0)) * 100}%, #f3f4f6 0%)`
                   }}
                 />
                 

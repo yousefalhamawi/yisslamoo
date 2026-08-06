@@ -92,33 +92,43 @@ const Hero: React.FC = () => {
                 loading={index === currentSlide ? 'eager' : 'lazy'}
                 fetchPriority={index === currentSlide ? 'high' : 'auto'}
               />
-              {/* Optional slight gradient overlay for text readability if needed */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/40 md:to-white/60"></div>
+              {/* Optional slight gradient overlay for text readability — only if there's text */}
+              {(slide.title?.trim() || slide.subtitle?.trim() || slide.link?.trim()) && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/40 md:to-white/60"></div>
+              )}
             </div>
 
-            {/* Text Content Overlay */}
-            <div className={`relative z-10 w-full h-full flex flex-col px-10 md:px-24 lg:px-40 py-16 md:py-24 ${getMobileClasses(slide.mobileTextPosition || slide.textPosition)} ${getDesktopClasses(slide.textPosition)}`}>
-              <h1 
-                className="text-5xl md:text-7xl lg:text-8xl font-black mb-4 tracking-tighter drop-shadow-sm max-w-4xl"
-                style={{ color: slide.titleColor || '#0f172a' }}
-              >
-                {slide.title}
-              </h1>
-              <p 
-                className="text-lg md:text-xl mb-8 max-w-md font-bold leading-relaxed drop-shadow-sm"
-                style={{ color: slide.subtitleColor || '#1e293b' }}
-              >
-                {slide.subtitle}
-              </p>
-              
-              <Link
-                to={slide.link}
-                className="flex items-center gap-2 bg-[#1A1A1A] text-white px-8 py-3.5 rounded-xl hover:bg-black hover:scale-105 transition-all duration-300 shadow-xl shadow-black/20 font-bold"
-              >
-                <ShoppingBag className="w-5 h-5" />
-                <span>{slide.buttonText || 'تصفح المجموعة'}</span>
-              </Link>
-            </div>
+            {/* Text Content Overlay — only render when there's actual content */}
+            {(slide.title?.trim() || slide.subtitle?.trim() || slide.link?.trim()) && (
+              <div className={`relative z-10 w-full h-full flex flex-col px-10 md:px-24 lg:px-40 py-16 md:py-24 ${getMobileClasses(slide.mobileTextPosition || slide.textPosition)} ${getDesktopClasses(slide.textPosition)}`}>
+                {slide.title?.trim() && (
+                  <h1 
+                    className="text-5xl md:text-7xl lg:text-8xl font-black mb-4 tracking-tighter drop-shadow-sm max-w-4xl"
+                    style={{ color: slide.titleColor || '#0f172a' }}
+                  >
+                    {slide.title}
+                  </h1>
+                )}
+                {slide.subtitle?.trim() && (
+                  <p 
+                    className="text-lg md:text-xl mb-8 max-w-md font-bold leading-relaxed drop-shadow-sm"
+                    style={{ color: slide.subtitleColor || '#1e293b' }}
+                  >
+                    {slide.subtitle}
+                  </p>
+                )}
+                
+                {slide.link?.trim() && (
+                  <Link
+                    to={slide.link}
+                    className="flex items-center gap-2 bg-[#1A1A1A] text-white px-8 py-3.5 rounded-xl hover:bg-black hover:scale-105 transition-all duration-300 shadow-xl shadow-black/20 font-bold"
+                  >
+                    <ShoppingBag className="w-5 h-5" />
+                    <span>{slide.buttonText || 'تصفح المجموعة'}</span>
+                  </Link>
+                )}
+              </div>
+            )}
           </div>
         ))}
 

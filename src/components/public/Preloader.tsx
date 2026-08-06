@@ -40,7 +40,7 @@ const Preloader: React.FC<{ onComplete?: () => void }> = ({ onComplete }) => {
               <motion.path
                 d={purplePath}
                 fill="transparent"
-                stroke="#4b3976"
+                stroke="#4C1D95"
                 strokeWidth="2"
                 initial={{ pathLength: 0, fill: "rgba(75, 57, 118, 0)" }}
                 animate={{
@@ -122,8 +122,8 @@ const Preloader: React.FC<{ onComplete?: () => void }> = ({ onComplete }) => {
 
               <defs>
                 <radialGradient id="glowGradient">
-                  <stop offset="0%" stopColor="#4b3976" stopOpacity="0.5" />
-                  <stop offset="100%" stopColor="#4b3976" stopOpacity="0" />
+                  <stop offset="0%" stopColor="#4C1D95" stopOpacity="0.5" />
+                  <stop offset="100%" stopColor="#4C1D95" stopOpacity="0" />
                 </radialGradient>
               </defs>
             </svg>
